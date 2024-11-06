@@ -1,0 +1,10 @@
+<html>
+<head>
+    <title>http-servers project</title>
+</head>
+<body>
+    <h1>Hello from {{ domain }}</h1>
+    <p>This is a simple http server configuration with SSL certs from Let's Encrypt</p>
+    <p>It is running on port <a href="http://{{ domain }}">80</a> and <a href="https://{{ domain }}">443</a></p>
+    <p>The admin's email is {{ email }}</p>
+</body>
