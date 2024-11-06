@@ -1,0 +1,29 @@
+FROM docker.io/library/httpd:2.4
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    cron \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment and install certbot
+RUN python3 -m venv /opt/certbot/ \
+    && /opt/certbot/bin/pip install --no-cache-dir certbot
+
+# Create directories for certbot
+RUN mkdir -p /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+
+# Create directories for SSL certificates
+RUN mkdir -p /usr/local/apache2/conf/ssl
+
+# Copy the httpd configuration file
+COPY conf/httpd.conf /usr/local/apache2/conf/httpd.conf
+
+# Copy the SSL configuration file
+COPY conf/extra/httpd-ssl.conf /usr/local/apache2/conf/extra/httpd-ssl.conf
+
+# Copy the SSL certificate and key
+COPY conf/ssl/server-cert.pem /usr/local/apache2/conf/ssl/server-cert.pem
+COPY conf/ssl/server-key.pem /usr/local/apache2/conf/ssl/server-key.pem
