@@ -14,7 +14,7 @@ def do_run(domain, email):
         abs_config_file = os.path.abspath(config_file)
         ssl_config_file = os.path.join(os.path.dirname(__file__), '..', 'build', 'apache', 'conf', 'extra', 'httpd-ssl.conf')
         abs_ssl_config_file = os.path.abspath(ssl_config_file)
-        letsencrypt_dir = os.path.join(os.path.dirname(__file__), '..', 'build', 'letsencrypt')
+        letsencrypt_dir = os.path.join(os.path.dirname(__file__), '..', 'build', 'certbot', 'conf')
         abs_letsencrypt_dir = os.path.abspath(letsencrypt_dir)
 
         client.containers.run(
@@ -22,7 +22,7 @@ def do_run(domain, email):
             name='apache',
             ports={'80/tcp': 80, '443/tcp': 443},
             mounts=[{'source': abs_webroot_dir, 'target': '/usr/local/apache2/htdocs', 'type': 'bind', 'read_only': True},
-                    {'source': abs_letsencrypt_dir, 'target': '/etc/letsencrypt', 'type': 'bind', 'read_only': False},
+                    {'source': abs_letsencrypt_dir, 'target': '/usr/local/apache2/conf/letsencrypt', 'type': 'bind', 'read_only': False},
                     {'source': abs_config_file, 'target': '/usr/local/apache2/conf/httpd.conf', 'type': 'bind', 'read_only': True},
                     {'source': abs_ssl_config_file, 'target': '/usr/local/apache2/conf/extra/httpd-ssl.conf', 'type': 'bind', 'read_only': True}],
             detach=True

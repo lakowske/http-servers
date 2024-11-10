@@ -3,9 +3,11 @@ import os
 from podman import PodmanClient
 from .config import load_config, apache_dir, certbot_dir
 
-def build_images():
-    config = load_config()
-    apache_path = os.path.abspath(apache_dir(config))
+def build_images(config=None):
+    if config is None:
+        config = load_config()
+
+    apache_path = apache_dir(config)
     apache_dockerfile = os.path.join(apache_path, 'Dockerfile')
 
     if not os.path.exists(apache_path):

@@ -6,53 +6,70 @@ from datetime import datetime, timedelta, timezone
 from certbot import main as certbot_main
 import requests
 import logging
-from .config import load_config, webroot_path, ssl_config_path
+from .config import load_config, webroot_path, ssl_config_path, certbot_config_dir, certbot_work_dir, certbot_logs_dir
 import os
 import time
 
-def healthcheck():
-    url = 'http://localhost'
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            return True
-    except requests.exceptions.ConnectionError:
-        pass
-    return False
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def wait_for_webserver():
+def healthcheck(domain):
+    http_url = f'http://{domain}'
+    https_url = f'https://{domain}'
+
+    try:
+        http_response = requests.get(http_url)
+        if http_response.status_code != 200:
+            return False
+    except requests.exceptions.ConnectionError as e:
+        logger.error(f"HTTP healthcheck failed for {http_url}: {e}")
+        return False
+
+    try:
+        https_response = requests.get(https_url, verify=False)
+        if https_response.status_code != 200:
+            return False
+    except requests.exceptions.ConnectionError as e:
+        logger.error(f"HTTPS healthcheck failed for {https_url}: {e}")
+        return False
+
+    return True
+
+def wait_for_webserver(domain):
     """Wait for the web server to be ready"""
     max_attempts = 30
     attempt = 0
 
     while attempt < max_attempts:
-        if healthcheck():
+        if healthcheck(domain):
             return True
         time.sleep(1)
         attempt += 1
 
     return False
 
-def setup_ssl(domains, email, staging=True):
+def certbot_ssl(domains : list[str], email, config=None, staging=True, dry_run=True):
     """
     Set up SSL certificates using certbot
     """
-    config = load_config()
-
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
+    if config is None:
+        config = load_config()
 
     webroot = webroot_path(config)
 
     try:
         # Wait for web server to be ready
-        if not wait_for_webserver():
+        if not wait_for_webserver(domains[0]):
             logger.error("Web server did not start in time")
             return False
 
         args = [
-            '--authenticator', 'webroot',
-            '--webroot-path', webroot,
+            'certonly', # Obtain a certificate but do not install it
+            '--authenticator', 'webroot', # Use the webroot authenticator
+            '--webroot-path', webroot, # Set the webroot path
+            '--config-dir', certbot_config_dir(config),
+            '--work-dir', certbot_work_dir(config),
+            '--logs-dir', certbot_logs_dir(config),
             '--installer', 'None',
             '--email', email,
             '--agree-tos',
@@ -67,6 +84,12 @@ def setup_ssl(domains, email, staging=True):
             args.append('--staging')
 
         logger.info(f"Obtaining certificate for domains: {domains}")
+
+        if dry_run:
+            logger.info("Dry run: Skipping certificate generation")
+            logger.info(f"Would have run: certbot {' '.join(args)}")
+            return True
+
         certbot_main.main(args)
 
         # Update Apache configuration
@@ -76,12 +99,12 @@ def setup_ssl(domains, email, staging=True):
 
         # Replace certificate paths
         config = config.replace(
-            'SSLCertificateFile "/usr/local/apache2/conf/server.crt"',
-            f'SSLCertificateFile "/etc/letsencrypt/live/{domains[0]}/fullchain.pem"'
+            'SSLCertificateFile "/usr/local/apache2/conf/ssl/server-cert.pem"',
+            f'SSLCertificateFile "/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/fullchain.pem"'
         )
         config = config.replace(
-            'SSLCertificateKeyFile "/usr/local/apache2/conf/server.key"',
-            f'SSLCertificateKeyFile "/etc/letsencrypt/live/{domains[0]}/privkey.pem"'
+            'SSLCertificateKeyFile "/usr/local/apache2/conf/ssl/server-key.pem"',
+            f'SSLCertificateKeyFile "/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/privkey.pem"'
         )
 
         with open(ssl_config, 'w') as f:

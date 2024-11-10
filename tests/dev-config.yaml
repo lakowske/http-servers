@@ -1,0 +1,3 @@
+email: lakowske@gmail.com
+domain: lab.sethlakowske.com
+ssl_config_path: build/apache/conf/extra/httpd-ssl.conf

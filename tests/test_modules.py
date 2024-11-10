@@ -5,24 +5,25 @@ from http_servers.templates import templates, build_templates
 from http_servers.images import images, build_images
 from http_servers.run import run, do_run
 from http_servers.rm import rm, do_rm
-from http_servers.config import load_config
-from http_servers.ssl import healthcheck
+from http_servers.config import load_config, domain, email, build_dir
+from http_servers.ssl import healthcheck, certbot_ssl
+
 
 class TestCLI(unittest.TestCase):
 
     def setUp(self):
         self.runner = CliRunner()
-        self.config = load_config()
-        self.domain = 'lab.sethlakowske.com'
-        self.email  = 'admin@' + self.domain
+        self.config = load_config(config_file='tests/dev-config.yaml')
+        self.domain = domain(self.config)
+        self.email  = email(self.config)
 
     def test_templates(self):
-        build_templates(self.domain, self.email)
-        build_dir = os.path.join(os.path.dirname(__file__), '..', self.config['build_dir'])
-        self.assertTrue(os.path.exists(os.path.join(build_dir, 'apache/conf/httpd.conf')))
-        self.assertTrue(os.path.exists(os.path.join(build_dir, 'apache/conf/extra/httpd-ssl.conf')))
-        self.assertTrue(os.path.exists(os.path.join(build_dir, 'apache/Dockerfile')))
-        self.assertTrue(os.path.exists(os.path.join(build_dir, 'webroot/index.html')))
+        build_templates(self.domain, self.email, self.config)
+        template_build_dir = build_dir(self.config)
+        self.assertTrue(os.path.exists(os.path.join(template_build_dir, 'apache/conf/httpd.conf')))
+        self.assertTrue(os.path.exists(os.path.join(template_build_dir, 'apache/conf/extra/httpd-ssl.conf')))
+        self.assertTrue(os.path.exists(os.path.join(template_build_dir, 'apache/Dockerfile')))
+        self.assertTrue(os.path.exists(os.path.join(template_build_dir, 'webroot/index.html')))
 
     def test_images(self):
         build_images()
@@ -35,9 +36,14 @@ class TestCLI(unittest.TestCase):
         # Add assertions to verify containers are running if possible
 
     def test_http_server(self):
-        result = healthcheck()
+        result = healthcheck(self.domain)
         self.assertTrue(result)
         # Add assertions to verify http server is running if possible
+
+    def test_certbot(self):
+        result = certbot_ssl([self.domain], self.email, config=self.config, dry_run=False)
+        self.assertTrue(result)
+        # Add assertions to verify certificates were created if possible
 
     def test_rm(self):
         result = do_rm()
