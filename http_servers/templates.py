@@ -1,6 +1,6 @@
 import os
 import click
-from .config import load_config, build_dir, apache_ssl_dir, webroot_path
+from .config import load_config, build_dir
 from .ssl import generate_self_signed_cert
 
 def read_template(file_path):

@@ -1,10 +1,10 @@
 import unittest
 import os
 from click.testing import CliRunner
-from http_servers.templates import templates, build_templates
-from http_servers.images import images, build_images
-from http_servers.run import run, do_run
-from http_servers.rm import rm, do_rm
+from http_servers.templates import build_templates
+from http_servers.images import build_images
+from http_servers.run import do_run
+from http_servers.rm import do_rm
 from http_servers.config import load_config, domain, email, build_dir
 from http_servers.ssl import healthcheck, certbot_ssl
 

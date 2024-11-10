@@ -1,7 +1,7 @@
 import click
 import os
 from podman import PodmanClient
-from .config import load_config, apache_dir, certbot_dir
+from .config import load_config, apache_dir
 
 def build_images(config=None):
     if config is None:

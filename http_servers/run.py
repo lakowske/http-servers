@@ -2,7 +2,6 @@ import os
 import click
 from podman import PodmanClient
 from .config import load_config
-from http_servers.config import ssl_config_path
 
 
 def do_run(domain, email):
