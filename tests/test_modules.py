@@ -27,6 +27,11 @@ class TestCLI(unittest.TestCase):
             )
         )
         self.assertTrue(
+            os.path.exists(
+                os.path.join(template_build_dir, "apache/conf/extra/httpd-git.conf")
+            )
+        )
+        self.assertTrue(
             os.path.exists(os.path.join(template_build_dir, "apache/Dockerfile"))
         )
         self.assertTrue(

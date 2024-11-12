@@ -2,6 +2,8 @@ FROM docker.io/library/httpd:2.4
 
 # Install required packages
 RUN apt-get update && apt-get install -y \
+    git \
+    nano \
     python3 \
     python3-pip \
     python3-venv \
@@ -15,6 +17,15 @@ RUN python3 -m venv /opt/certbot/ \
 # Create directories for certbot
 RUN mkdir -p /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
 
+# Create directory for git repos
+RUN mkdir -p /usr/local/apache2/git && chown -R www-data:www-data /usr/local/apache2/git
+
+# Create a test git repository for verification
+RUN git init --bare /usr/local/apache2/git/test.git && chown -R www-data:www-data /usr/local/apache2/git/test.git
+
+# Create an empty htpasswd file for git
+RUN touch /usr/local/apache2/conf/git-auth && chown www-data:www-data /usr/local/apache2/conf/git-auth
+
 # Create directories for SSL certificates
 RUN mkdir -p /usr/local/apache2/conf/ssl
 
@@ -23,6 +34,9 @@ COPY conf/httpd.conf /usr/local/apache2/conf/httpd.conf
 
 # Copy the SSL configuration file
 COPY conf/extra/httpd-ssl.conf /usr/local/apache2/conf/extra/httpd-ssl.conf
+
+# Copy the git configuration file
+COPY conf/extra/httpd-git.conf /usr/local/apache2/conf/extra/httpd-git.conf
 
 # Copy the SSL certificate and key
 COPY conf/ssl/server-cert.pem /usr/local/apache2/conf/ssl/server-cert.pem
