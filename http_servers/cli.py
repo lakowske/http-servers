@@ -1,17 +1,22 @@
-import click
-from .templates import templates
-from .images import images
-from .run import run
-from .rm import rm
+from http_servers.container import Container
 
-@click.group()
-def cli():
-    pass
 
-cli.add_command(templates)
-cli.add_command(images)
-cli.add_command(run)
-cli.add_command(rm)
+def initialize_container(config_path: str = None) -> Container:
 
-if __name__ == '__main__':
-    cli()
+    # Create and configure the container
+    container = Container()
+
+    # Merge configurations with precedence: CLI > ENV > YAML
+    # Load configurations from different sources
+    merged_config = container.loaded_configs()
+
+    # Apply the merged configuration to the container
+    container.config.from_dict(merged_config)
+
+    # Load the configuration into the container
+    # container.load_config()
+
+    # Wire the container to modules that use dependency injection
+    container.wire(modules=[__name__])
+
+    return container

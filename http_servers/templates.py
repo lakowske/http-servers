@@ -1,7 +1,7 @@
 import os
 import click
 from .config import load_config, build_dir
-from .ssl import generate_self_signed_cert
+from .certbot import generate_self_signed_cert
 
 def read_template(file_path):
     base_dir = os.path.dirname(__file__)
