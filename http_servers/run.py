@@ -9,9 +9,7 @@ def do_run(domain, email):
     with PodmanClient() as client:
         webroot_dir = os.path.join(os.path.dirname(__file__), "..", "build", "webroot")
         abs_webroot_dir = os.path.abspath(webroot_dir)
-        cgi_dir = os.path.join(
-            os.path.dirname(__file__), "..", "build", "apache", "cgi-bin"
-        )
+        cgi_dir = os.path.join(os.path.dirname(__file__), "..", "cgi_bin")
         abs_cgi_dir = os.path.abspath(cgi_dir)
         config_file = os.path.join(
             os.path.dirname(__file__), "..", "build", "apache", "conf", "httpd.conf"
