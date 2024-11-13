@@ -1,10 +1,10 @@
-from http_servers.container import Container
+from http_servers.container import ServerContainer
 
 
-def initialize_container(config_path: str = None) -> Container:
+def initialize_container(config_path: str = None) -> ServerContainer:
 
     # Create and configure the container
-    container = Container()
+    container = ServerContainer()
 
     # Merge configurations with precedence: CLI > ENV > YAML
     # Load configurations from different sources

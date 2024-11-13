@@ -1,12 +1,12 @@
 from http_servers.cli import initialize_container
 from http_servers.service import PodmanService
 from dependency_injector.wiring import inject, Provider
-from http_servers.container import Container
+from http_servers.container import ServerContainer
 from podman.client import PodmanClient
 
 
 @inject
-def client_provider(client: PodmanClient = Provider[Container.podman_client]):
+def client_provider(client: PodmanClient = Provider[ServerContainer.podman_client]):
     return client.provider()
 
 

@@ -1,7 +1,8 @@
 from .config_loader import ConfigurationLoader, load_configs
 from dependency_injector import containers, providers
 from .config_schema import PodmanConfig
-from podman.client import PodmanClient
+from .service import PodmanService
+
 
 
 def create_podman_config(config):
@@ -13,9 +14,11 @@ def create_podman_config(config):
     )
 
 
-class Container(containers.DeclarativeContainer):
+class ServerContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
 
     loaded_configs = providers.Factory(load_configs, config_path="config.yaml")
 
-    podman_config = providers.Callable(create_podman_config, config=loaded_configs)
+    podman_config = providers.Singleton(create_podman_config, config=loaded_configs)
+
+    podman_service = providers.Factory(PodmanService, podman_config=podman_config)
