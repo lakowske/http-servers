@@ -1,11 +1,50 @@
+"""
+This module provides functionality to run an Apache HTTP server container using Podman.
+
+The `do_run` function sets up and runs an Apache HTTP server container with specified configurations.
+It binds various directories and configuration files from the host to the container to configure the server.
+
+The following directories and files are bound to the container:
+- Webroot directory: Mounted to /usr/local/apache2/htdocs (read-only)
+- CGI directory: Mounted to /usr/local/apache2/cgi-bin (read-only)
+- Let's Encrypt directory: Mounted to /usr/local/apache2/conf/letsencrypt (read-write)
+- Apache configuration file: Mounted to /usr/local/apache2/conf/httpd.conf (read-only)
+- SSL configuration file: Mounted to /usr/local/apache2/conf/extra/httpd-ssl.conf (read-only)
+
+The container is run with the following settings:
+- Image: my-httpd
+- Name: apache
+- Ports: 80/tcp and 443/tcp are mapped to the host
+
+The container is started in detached mode.
+"""
 import os
 import click
 from podman import PodmanClient
-from .config import load_config
 
 
-def do_run(domain, email):
-    config = load_config()
+def do_run():
+    """
+    Runs an Apache HTTP server container using Podman with specified configurations.
+
+    This function sets up and runs an Apache HTTP server container using the Podman
+    client. It binds various directories and configuration files from the host to the
+    container to configure the server.
+
+    The following directories and files are bound to the container:
+    - Webroot directory: Mounted to /usr/local/apache2/htdocs (read-only)
+    - CGI directory: Mounted to /usr/local/apache2/cgi-bin (read-only)
+    - Let's Encrypt directory: Mounted to /usr/local/apache2/conf/letsencrypt (read-write)
+    - Apache configuration file: Mounted to /usr/local/apache2/conf/httpd.conf (read-only)
+    - SSL configuration file: Mounted to /usr/local/apache2/conf/extra/httpd-ssl.conf (read-only)
+
+    The container is run with the following settings:
+    - Image: my-httpd
+    - Name: apache
+    - Ports: 80/tcp and 443/tcp are mapped to the host
+
+    The container is started in detached mode.
+    """
     with PodmanClient() as client:
         webroot_dir = os.path.join(os.path.dirname(__file__), "..", "build", "webroot")
         abs_webroot_dir = os.path.abspath(webroot_dir)
@@ -71,13 +110,10 @@ def do_run(domain, email):
 
 
 @click.command()
-@click.option(
-    "--domain", required=True, help="The domain name for the SSL certificate."
-)
-@click.option(
-    "--email",
-    required=True,
-    help="The email address for the SSL certificate registration.",
-)
-def run(domain, email):
-    do_run(domain, email)
+def run():
+    """
+    Executes the main running function for the HTTP server.
+
+    This function calls the `do_run` function to start the server.
+    """
+    do_run()

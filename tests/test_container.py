@@ -3,7 +3,11 @@ from http_servers.container import ServerContainer
 from http_servers.service import PodmanService
 from http_servers.config_loader import load_configs
 from dependency_injector import providers
+from dependency_injector.wiring import inject, Provide
 
+@inject
+def create_podman_client(podman_service: PodmanService = Provide[ServerContainer.podman_service]):
+    return podman_service.get_client()
 
 class TestContainer(unittest.TestCase):
     def setUp(self) -> None:
@@ -24,7 +28,7 @@ class TestContainer(unittest.TestCase):
         self.assertIn("podman", full_config)
         self.assertEqual(28, full_config["test_value"])
 
-    def test_wiring(self):
+    def test_podman_service(self):
         # Act
         podman_config = self.container.podman_config()
         podman_service = self.container.podman_service()
@@ -38,3 +42,10 @@ class TestContainer(unittest.TestCase):
         self.assertIsNotNone(podman_service)
         self.assertEqual(podman_service.podman_config, podman_config)
         self.assertIsNotNone(podman_service.get_client())
+
+    def test_wiring(self):
+        # Act
+        podman_client = create_podman_client()
+
+        # Assert
+        self.assertIsNotNone(podman_client)

@@ -5,7 +5,10 @@ from http_servers.images import build_images
 from http_servers.run import do_run
 from http_servers.rm import do_rm
 from http_servers.config import load_config, domain, email, build_dir
+from http_servers.config_loader import load_configs
 from http_servers.certbot import healthcheck, certbot_ssl
+from http_servers.container import ServerContainer
+from dependency_injector import providers
 
 
 class TestCLI(unittest.TestCase):
@@ -14,6 +17,16 @@ class TestCLI(unittest.TestCase):
         self.config = load_config(config_file="tests/dev-config.yaml")
         self.domain = domain(self.config)
         self.email = email(self.config)
+        self.container = ServerContainer()
+        # Initialize the container with the test config
+        self.container.loaded_configs.override(
+            providers.Factory(
+                load_configs,
+                config_path="tests/macbook-config.yaml"
+            )
+        )
+        # Wire the container
+        self.container.wire(modules=[__name__, 'http_servers.images'])
 
     def test_templates(self):
         build_templates(self.domain, self.email, self.config)
@@ -39,6 +52,10 @@ class TestCLI(unittest.TestCase):
         )
 
     def test_images(self):
+        loaded_configs = self.container.loaded_configs()
+        podman_configs = self.container.podman_config()
+        podman_service = self.container.podman_service()
+
         build_images()
         # Add assertions to verify images were built if possible
 
