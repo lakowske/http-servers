@@ -1,3 +1,12 @@
+# IDE files
+.idea/
+.vscode/
+
+# Compiled artifact files
 build/
+
+# Python files
 __pycache__/
 .venv/
+*.pyc
+servenv/

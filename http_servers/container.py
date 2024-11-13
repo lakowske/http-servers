@@ -13,26 +13,9 @@ def create_podman_config(config):
     )
 
 
-def filter_none_kwargs(**kwargs):
-    return {k: v for k, v in kwargs.items() if v is not None}
-
-
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
 
-    loaded_configs = providers.Singleton(load_configs, config_path="config.yaml")
+    loaded_configs = providers.Factory(load_configs, config_path="config.yaml")
 
-    podman_config = providers.Singleton(create_podman_config, config=loaded_configs)
-
-    podman_client = providers.Singleton(
-        PodmanClient,
-        **filter_none_kwargs(
-            base_url=podman_config().socket_url,
-            timeout=podman_config().timeout,
-            tls_verify=podman_config().tls_verify,
-            cert_path=podman_config().cert_path,
-        )
-    )
-
-    def load_config(self):
-        self.config.from_dict(self.config_loader().load_configs("config.yaml"))
+    podman_config = providers.Callable(create_podman_config, config=loaded_configs)

@@ -19,8 +19,7 @@ class ConfigurationLoader:
             "podman": {
                 "socket_url": os.getenv("PODMAN_SOCKET_URL"),
                 "timeout": os.getenv("PODMAN_TIMEOUT"),
-                "tls_verify": os.getenv("PODMAN_TLS_VERIFY", "1").lower()
-                in ("true", "1", "yes"),
+                "tls_verify": os.getenv("PODMAN_TLS_VERIFY"),
                 "cert_path": os.getenv("PODMAN_CERT_PATH"),
             }
         }
@@ -53,16 +52,30 @@ class ConfigurationLoader:
     def merge_configs(*configs: dict) -> dict:
         final_config = {}
         for config in configs:
+            if not isinstance(config, dict):
+                continue
+
             for section, values in config.items():
+                # Handle case where section value is not a dictionary
+                if not isinstance(values, dict):
+                    final_config[section] = values
+                    continue
+
+                # Initialize section if not present
                 if section not in final_config:
                     final_config[section] = {}
+                elif not isinstance(final_config[section], dict):
+                    # If existing section is not a dictionary, don't try to merge
+                    # Should we raise an error here?
+                    continue
+
+                # Merge values into final config
                 for key, value in (values or {}).items():
                     if value is not None:
                         final_config[section][key] = value
         return final_config
 
 
-@staticmethod
 def load_configs(config_path: str = None) -> dict:
     loader = ConfigurationLoader()
     yaml_config = loader.load_yaml(config_path)
