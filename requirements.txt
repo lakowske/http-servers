@@ -4,3 +4,4 @@ podman~=5.2.0
 certbot~=3.0.0
 dependency-injector~=4.43.0
 PyYAML~=6.0.2
+passlib~=1.7.4

@@ -20,10 +20,11 @@ The container is started in detached mode.
 """
 import os
 import click
-from podman import PodmanClient
+from dependency_injector.wiring import Provide
+from .container import ServerContainer
+from .service import PodmanService
 
-
-def do_run():
+def do_run(podman_service: PodmanService = Provide[ServerContainer.podman_service]):
     """
     Runs an Apache HTTP server container using Podman with specified configurations.
 
@@ -45,7 +46,8 @@ def do_run():
 
     The container is started in detached mode.
     """
-    with PodmanClient() as client:
+    podman_client = podman_service.get_client()
+    with podman_client as client:
         webroot_dir = os.path.join(os.path.dirname(__file__), "..", "build", "webroot")
         abs_webroot_dir = os.path.abspath(webroot_dir)
         cgi_dir = os.path.join(os.path.dirname(__file__), "..", "cgi_bin")

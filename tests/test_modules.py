@@ -52,17 +52,11 @@ class TestCLI(unittest.TestCase):
         )
 
     def test_images(self):
-        loaded_configs = self.container.loaded_configs()
-        podman_configs = self.container.podman_config()
-        podman_service = self.container.podman_service()
-
         build_images()
         # Add assertions to verify images were built if possible
 
     def test_run(self):
-        result = do_run(self.domain, self.email)
-        # result = self.runner.invoke(run, ['--domain', 'example.com', '--email', 'test@example.com'])
-        # self.assertEqual(result.exit_code, 0)
+        do_run()
         # Add assertions to verify containers are running if possible
 
     def test_http_server(self):

@@ -84,5 +84,5 @@ def build_templates(domain, email, config=None):
     required=True,
     help="The email address for the SSL certificate registration.",
 )
-def templates(domain):
-    build_templates(domain)
+def templates(domain, email):
+    build_templates(domain, email)

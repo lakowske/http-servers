@@ -33,7 +33,7 @@ class PodmanService:
     def __init__(self, podman_config: PodmanConfig):
         self.podman_config = podman_config
 
-    def get_client(self):
+    def get_client(self) -> podman.PodmanClient:
         """
         Creates and returns a PodmanClient instance with the configuration specified in podman_config.
 

@@ -1,5 +1,5 @@
-from .config_loader import ConfigurationLoader, load_configs
 from dependency_injector import containers, providers
+from .config_loader import load_configs
 from .config_schema import PodmanConfig
 from .service import PodmanService
 
