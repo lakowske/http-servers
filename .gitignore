@@ -1,6 +1,7 @@
 # IDE files
 .idea/
 .vscode/
+http-servers.iml
 
 # Compiled artifact files
 build/
@@ -10,3 +11,4 @@ __pycache__/
 .venv/
 *.pyc
 servenv/
+
