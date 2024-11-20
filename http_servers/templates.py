@@ -2,6 +2,8 @@ import os
 import click
 from .config import load_config, build_dir
 from .certbot import generate_self_signed_cert
+from .auth import to_htpasswd_file, to_passwd_file, UserCredential
+from .password import random_password
 
 
 def read_template(file_path):
@@ -33,8 +35,17 @@ def build_templates(domain, email, config=None):
     os.makedirs(os.path.join(template_build_dir, "certbot/conf"), exist_ok=True)
     os.makedirs(os.path.join(template_build_dir, "certbot/work"), exist_ok=True)
     os.makedirs(os.path.join(template_build_dir, "certbot/logs"), exist_ok=True)
+    os.makedirs(os.path.join(template_build_dir, "secrets"), exist_ok=True)
+    # Generate an admin user credential for git
+    git_user = UserCredential(username="git", password=random_password(20))
+
     # Generate self-signed certificate for development and initialisation
     generate_self_signed_cert(domain, ssl_dir)
+    # Generate htpasswd file for git authentication
+    htpasswd_path = os.path.join(template_build_dir, "apache/conf/htpasswd")
+    to_htpasswd_file([git_user], htpasswd_path)
+    passwd_path = os.path.join(template_build_dir, "secrets/passwd")
+    to_passwd_file([git_user], passwd_path)
 
     httpd_conf_template = read_template("httpd.conf.template")
     httpd_conf_content = httpd_conf_template.replace("{{ domain }}", domain).replace(

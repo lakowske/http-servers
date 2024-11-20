@@ -38,6 +38,7 @@ class BuildPaths:
     apache: str = "build/apache"
     certbot: str = "build/certbot"
     webroot: str = "build/webroot"
+    secrets: str = "build/secrets"
 
 
 @dataclass

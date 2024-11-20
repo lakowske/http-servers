@@ -1,17 +1,25 @@
 import unittest
-from http_servers.auth import UserCredential, to_htpasswd_file, from_htpasswd_file, from_htpasswd_str, to_htpasswd_str
-from passlib.apache import HtpasswdFile
 import os
+from passlib.apache import HtpasswdFile
+from http_servers.auth import (
+    UserCredential,
+    to_htpasswd_file,
+    from_htpasswd_file,
+    from_htpasswd_str,
+    to_htpasswd_str,
+    to_passwd_file,
+    from_passwd_file,
+)
+
 
 class TestAuth(unittest.TestCase):
 
     def setUp(self):
         self.users = [
             UserCredential(username="user1", password="password1"),
-            UserCredential(username="user2", password="password2")
+            UserCredential(username="user2", password="password2"),
         ]
         self.file_path = "/tmp/test_htpasswd"
-        self.htpasswd_str = "user1:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/\nuser2:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/\n"
 
     def tearDown(self):
         if os.path.exists(self.file_path):
@@ -35,5 +43,13 @@ class TestAuth(unittest.TestCase):
         ht = from_htpasswd_str(htpasswd_entry)
         self.assertTrue(ht.check_password("user1", "password1"))
 
-if __name__ == '__main__':
+    def test_to_passwd_file(self):
+        to_passwd_file(self.users, self.file_path)
+        read_users = from_passwd_file(self.file_path)
+        self.assertEqual(len(self.users), len(read_users))
+        for user in self.users:
+            self.assertTrue(user in read_users)
+
+
+if __name__ == "__main__":
     unittest.main()

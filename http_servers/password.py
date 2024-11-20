@@ -9,13 +9,15 @@ Functions:
 - get_password_strength(entropy: float) -> str: Returns the password strength classification 
   based on entropy.
 """
+
 import re
 import math
 import random
 from collections import Counter
 from typing import Set
 
-def random_password(length: int=8) -> str:
+
+def random_password(length: int = 8) -> str:
     """
     Generates a random password string.
 
@@ -29,22 +31,24 @@ def random_password(length: int=8) -> str:
     lowercase = "abcdefghijklmnopqrstuvwxyz"
     uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     numbers = "0123456789"
-    special = "!@#$%^&*()_+-=[]|;:,.<>?"    
+    special = "!@#$%^&*_+-=|,"
     chars = lowercase + uppercase + numbers + special
     return "".join(random.choices(chars, k=length))
+
 
 def get_char_sets(password: str) -> Set[str]:
     """Returns the character sets used in password"""
     char_sets = set()
-    if re.search(r'[a-z]', password):
-        char_sets.add('lowercase')
-    if re.search(r'[A-Z]', password):
-        char_sets.add('uppercase')
-    if re.search(r'[0-9]', password):
-        char_sets.add('digits')
-    if re.search(r'[^a-zA-Z0-9]', password):
-        char_sets.add('special')
+    if re.search(r"[a-z]", password):
+        char_sets.add("lowercase")
+    if re.search(r"[A-Z]", password):
+        char_sets.add("uppercase")
+    if re.search(r"[0-9]", password):
+        char_sets.add("digits")
+    if re.search(r"[^a-zA-Z0-9]", password):
+        char_sets.add("special")
     return char_sets
+
 
 def shannon_entropy(password: str) -> float:
     """
@@ -53,18 +57,19 @@ def shannon_entropy(password: str) -> float:
     """
     # Count character frequencies
     counts = Counter(password)
-    
+
     # Calculate probability of each character
-    probabilities = [count/len(password) for count in counts.values()]
-    
+    probabilities = [count / len(password) for count in counts.values()]
+
     # Shannon entropy formula: -sum(p * log2(p))
     return -sum(p * math.log2(p) for p in probabilities)
+
 
 def get_entropy(password: str, min_repeats: int = 3) -> float:
     """
     Calculates password entropy considering:
     - Length
-    - Character set complexity 
+    - Character set complexity
     - Shannon entropy
     - Common patterns
 
@@ -85,17 +90,18 @@ def get_entropy(password: str, min_repeats: int = 3) -> float:
     penalties = 0
     if get_repeat_count(password) > 0:  # Repeated characters
         penalties += 5
-    if re.search(r'(abc|123|qwe|pwd|password)', password, re.I):  # Common sequences
+    if re.search(r"(abc|123|qwe|pwd|password)", password, re.I):  # Common sequences
         penalties += 10
 
     return max(0, base_entropy + shannon - penalties)
+
 
 def get_repeat_count(password: str) -> int:
     """
     Returns the count of sequentially repeated characters in the password.
     """
-    return max(len(re.findall(r'(.)\1{2,}', password)), 0)
-    
+    return max(len(re.findall(r"(.)\1{2,}", password)), 0)
+
 
 def get_password_strength(entropy: float) -> str:
     """Returns password strength classification"""
