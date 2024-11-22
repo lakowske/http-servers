@@ -1,9 +1,114 @@
 from fastapi import FastAPI, HTTPException, WebSocket
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, TypeVar, Type
+from typing import List, Optional, Dict, Any, TypeVar, Type
 import copy
+import json
+import yaml
+import os
+
 
 T = TypeVar("T")
+
+# Create an absolute workspace directory variable
+WORKSPACE = os.path.dirname(os.path.abspath(__file__))
+
+
+class PodmanConfig(BaseModel):
+    """
+    PodmanConfig is a configuration class for Podman.
+
+    Attributes:
+        socket_url (str): The URL of the Podman socket.
+        timeout (int): The timeout value for Podman operations.
+        tls_verify (bool): Whether to verify TLS certificates.
+        cert_path (Optional[str]): The path to the TLS certificates, if any.
+    """
+
+    socket_url: Optional[str] = Field(default=None, description="Path to Podman socket")
+    timeout: Optional[int] = Field(
+        default=30, description="Timeout value for Podman operations"
+    )
+    tls_verify: Optional[bool] = Field(
+        default=False, description="Verify TLS certificates"
+    )
+    cert_path: Optional[str] = Field(
+        default=None, description="Path to TLS certificates"
+    )
+
+
+class ContainerPaths(BaseModel):
+    """Container path configuration"""
+
+    webroot: str = "/usr/local/apache2/htdocs"
+    ssl_config: str = "/usr/local/apache2/conf/extra/httpd-ssl.conf"
+    cgi_bin: str = "/usr/local/apache2/cgi-bin"
+    letsencrypt: str = "/usr/local/apache2/conf/letsencrypt"
+
+
+class BuildPaths(BaseModel):
+    """Build directory path configuration"""
+
+    root: str = "build"
+    apache: str = "apache"
+    apache_conf: str = "apache/conf"
+    certbot: str = "certbot"
+    webroot: str = "webroot"
+    secrets: str = "secrets"
+
+    def to_absolute_path(self, path: str) -> str:
+        """Convert a relative path to an absolute path"""
+        abs_path = f"{WORKSPACE}/{self.root}/{path}"
+        return abs_path
+
+    def make_path(self, path: str) -> str:
+        """Create a path using the workspace and root directory"""
+        abs_path = self.to_absolute_path(path)
+        os.makedirs(abs_path, exist_ok=True)
+        return abs_path
+
+
+class Config(BaseModel):
+    """Main configuration"""
+
+    domain: str
+    email: Optional[str] = None
+    container_paths: ContainerPaths = ContainerPaths()
+    build_paths: BuildPaths = BuildPaths()
+    podman: PodmanConfig = PodmanConfig()
+
+
+class HostConfig(BaseModel):
+    """Configuration for host machine"""
+
+    hostname: str = Field(description="Hostname of the machine")
+    ip_address: Optional[str] = Field(default=None, description="Primary IP address")
+    cpu_cores: Optional[int] = Field(default=None, description="Number of CPU cores")
+    memory_gb: Optional[float] = Field(default=None, description="Total memory in GB")
+
+
+class ContainerConfig(BaseModel):
+    """Configuration for container management"""
+
+    host: HostConfig
+    podman: PodmanConfig = PodmanConfig()
+    max_containers: Optional[int] = Field(
+        default=10, description="Maximum number of containers"
+    )
+    network_mode: Optional[str] = Field(
+        default="bridge", description="Default container network mode"
+    )
+
+
+class APIConfig(BaseModel):
+    """Comprehensive API Configuration"""
+
+    domain: str = Field(description="Primary domain name")
+    email: str = Field(description="Contact email address")
+    container: ContainerConfig
+
+    # Optional additional configuration
+    debug_mode: Optional[bool] = Field(default=False, description="Enable debug mode")
+    log_level: Optional[str] = Field(default="INFO", description="Logging level")
 
 
 def copy_merge_config(config: T, update_dict: Dict[str, Any]) -> T:
@@ -57,91 +162,38 @@ def merge_config(existing_config: BaseModel, update_dict: Dict[str, Any]) -> Bas
     return existing_config
 
 
-class PodmanConfig(BaseModel):
-    """
-    PodmanConfig is a configuration class for Podman.
-
-    Attributes:
-        socket_url (str): The URL of the Podman socket.
-        timeout (int): The timeout value for Podman operations.
-        tls_verify (bool): Whether to verify TLS certificates.
-        cert_path (Optional[str]): The path to the TLS certificates, if any.
-    """
-
-    socket_url: Optional[str] = Field(default=None, description="Path to Podman socket")
-    timeout: Optional[int] = Field(
-        default=30, description="Timeout value for Podman operations"
-    )
-    tls_verify: Optional[bool] = Field(
-        default=False, description="Verify TLS certificates"
-    )
-    cert_path: Optional[str] = Field(
-        default=None, description="Path to TLS certificates"
-    )
+def load_config(file_path: str) -> Config:
+    """Load configuration from a YAML file"""
+    with open(file_path, "r", encoding="utf-8") as file:
+        config_data = yaml.safe_load(file)
+    return Config(**config_data)
 
 
-class ContainerPaths(BaseModel):
-    """Container path configuration"""
-
-    webroot: str = "/usr/local/apache2/htdocs"
-    ssl_config: str = "/usr/local/apache2/conf/extra/httpd-ssl.conf"
-    cgi_bin: str = "/usr/local/apache2/cgi-bin"
-    letsencrypt: str = "/usr/local/apache2/conf/letsencrypt"
+def load_json_config(json_str: str) -> Config:
+    """Update the configuration with JSON input"""
+    json_data = json.loads(json_str)
+    return Config(**json_data)
 
 
-class BuildPaths(BaseModel):
-    """Build directory path configuration"""
-
-    root: str = "build"
-    apache: str = "build/apache"
-    certbot: str = "build/certbot"
-    webroot: str = "build/webroot"
-    secrets: str = "build/secrets"
-
-
-class Config(BaseModel):
-    """Main configuration"""
-
-    build_dir: str
-    domain: str
-    email: Optional[str] = None
-    container_paths: ContainerPaths = ContainerPaths()
-    build_paths: BuildPaths = BuildPaths()
-    podman: PodmanConfig = PodmanConfig()
+def parse_dot_notation_args(dot_notation_args: list) -> dict:
+    """Parse dot notation arguments into a nested dictionary"""
+    result = {}
+    for arg in dot_notation_args:
+        key, value = arg.split(":", 1)
+        keys = key.split(".")
+        d = result
+        for k in keys[:-1]:
+            if k not in d:
+                d[k] = {}
+            d = d[k]
+        d[keys[-1]] = value.strip()
+    return result
 
 
-class HostConfig(BaseModel):
-    """Configuration for host machine"""
-
-    hostname: str = Field(description="Hostname of the machine")
-    ip_address: Optional[str] = Field(default=None, description="Primary IP address")
-    cpu_cores: Optional[int] = Field(default=None, description="Number of CPU cores")
-    memory_gb: Optional[float] = Field(default=None, description="Total memory in GB")
-
-
-class ContainerConfig(BaseModel):
-    """Configuration for container management"""
-
-    host: HostConfig
-    podman: PodmanConfig = PodmanConfig()
-    max_containers: Optional[int] = Field(
-        default=10, description="Maximum number of containers"
-    )
-    network_mode: Optional[str] = Field(
-        default="bridge", description="Default container network mode"
-    )
-
-
-class APIConfig(BaseModel):
-    """Comprehensive API Configuration"""
-
-    domain: str = Field(description="Primary domain name")
-    email: str = Field(description="Contact email address")
-    container: ContainerConfig
-
-    # Optional additional configuration
-    debug_mode: Optional[bool] = Field(default=False, description="Enable debug mode")
-    log_level: Optional[str] = Field(default="INFO", description="Logging level")
+def print_schema(model: BaseModel):
+    """Print the schema of a Pydantic model"""
+    schema = model.schema()
+    print(json.dumps(schema, indent=2))
 
 
 # FastAPI Application with Configuration
