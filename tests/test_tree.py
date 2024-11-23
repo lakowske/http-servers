@@ -1,20 +1,20 @@
 import os
-from configuration.tree import BuildPaths
-from main import WORKSPACE
+from configuration.tree import build, container_paths
+from configuration.app import WORKSPACE
 
 
 def test_build_tree():
-    build_tree = BuildPaths()
+    build_tree = build
     # Test default values
     assert build_tree.name == "build"
     # Test children
     assert len(build_tree.children) == 4
     apache = build_tree.get("apache")
     assert apache.name == "apache"
-    assert len(apache.children) == 4
+    assert len(apache.children) == 3
     apache_conf = build_tree.get("apache").get("conf")
     assert apache_conf.name == "conf"
-    assert len(apache_conf.children) == 5
+    assert len(apache_conf.children) == 6
     # Test to_absolute_path
     abs_path = apache_conf.to_absolute_path(WORKSPACE)
     assert abs_path == f"{WORKSPACE}/build/apache/conf"
@@ -29,11 +29,22 @@ def test_build_tree():
     assert os.path.exists(apache_conf_ssl_path)
     # Test make_all_paths
     paths = build_tree.make_all_paths(WORKSPACE)
-    assert len(paths) == 13
+    assert len(paths) == 14
+
+
+def test_container_tree():
+    container_tree = container_paths
+    # Test default values
+    assert container_tree.name == "container_apache"
+    # Test children
+    assert len(container_tree.children) == 4
+    # Test to_absolute_path
+    abs_path = container_tree.to_absolute_path(WORKSPACE)
+    assert abs_path == f"{WORKSPACE}/container_apache"
 
 
 def test_clean():
-    build_tree = BuildPaths()
+    build_tree = build
     build_tree.clean(WORKSPACE)
 
     paths = build_tree.make_all_paths(WORKSPACE)
@@ -46,6 +57,7 @@ def test_clean():
 
 
 def test_schema_dump():
-    build_tree = BuildPaths()
-    schema = build_tree.model_json_schema()
-    assert schema["name"] == "build"
+
+    schema = build.model_json_schema()
+    assert schema["$defs"]["FSTree"]["description"] == "A tree of build artifacts"
+    assert "build" == build.name

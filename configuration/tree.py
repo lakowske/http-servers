@@ -1,22 +1,33 @@
 import os
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+import copy
 
 
-class BuildTree(BaseModel):
-    """A tree of build directories"""
+class FSTree(BaseModel):
+    """A tree of build artifacts"""
 
     name: str
+    path: Optional[str] = None
     isDir: bool = True
-    parent: Optional["BuildTree"] = None
-    children: List["BuildTree"] = []
+    parent: Optional["FSTree"] = Field(default=None, exclude=True)
+    children: List["FSTree"] = []
 
     def __init__(self, **data):
         super().__init__(**data)
         for child in self.children:
             child.parent = self
+        if self.path is None:
+            self.path = self.name
 
-    def get(self, name: str) -> Optional["BuildTree"]:
+    def __init__(self, **data):
+        super().__init__(**data)
+        for child in self.children:
+            child.parent = self
+        if self.path is None:
+            self.path = self.name
+
+    def get(self, name: str) -> Optional["FSTree"]:
         """Get a child node by name"""
         for child in self.children:
             if child.name == name:
@@ -76,38 +87,52 @@ class BuildTree(BaseModel):
                 os.rmdir(abs_path)
 
 
-class ApacheConf(BuildTree):
-    """Apache configuration paths"""
+extra = FSTree(
+    name="extra",
+    children=[
+        FSTree(name="httpd-ssl.conf", isDir=False),
+    ],
+)
 
-    name: str = "conf"
-    children: List[BuildTree] = [
-        BuildTree(name="extra"),
-        BuildTree(name="live"),
-        BuildTree(name="ssl"),
-        BuildTree(name="htpasswd", isDir=False),
-        BuildTree(name="passwd", isDir=False),
-    ]
+apache_conf = FSTree(
+    name="conf",
+    children=[
+        extra,
+        FSTree(name="live"),
+        FSTree(name="ssl"),
+        FSTree(name="letsencrypt"),
+        FSTree(name="htpasswd", isDir=False),
+        FSTree(name="passwd", isDir=False),
+    ],
+)
+
+apache = FSTree(
+    name="apache",
+    children=[
+        apache_conf,
+        FSTree(name="cgi-bin"),
+        FSTree(name="git"),
+    ],
+)
+
+build = FSTree(
+    name="build",
+    children=[
+        apache,
+        FSTree(name="webroot"),
+        FSTree(name="secrets"),
+        FSTree(name="letsencrypt"),
+    ],
+)
 
 
-class Apache(BuildTree):
-    """Apache configuration paths"""
-
-    name: str = "apache"
-    children: List[BuildTree] = [
-        ApacheConf(),
-        BuildTree(name="conf"),
-        BuildTree(name="cgi-bin"),
-        BuildTree(name="git"),
-    ]
-
-
-class BuildPaths(BuildTree):
-    """Some configuration in a build directory"""
-
-    name: str = "build"
-    children: List[BuildTree] = [
-        Apache(),
-        BuildTree(name="webroot"),
-        BuildTree(name="secrets"),
-        BuildTree(name="letsencrypt"),
-    ]
+container_paths = FSTree(
+    name="container_apache",
+    path="/usr/local/apache2",
+    children=[
+        FSTree(name="htdocs"),
+        copy.deepcopy(apache_conf),
+        FSTree(name="cgi-bin"),
+        FSTree(name="git"),
+    ],
+)

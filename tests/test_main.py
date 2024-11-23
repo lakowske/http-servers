@@ -16,51 +16,39 @@ def test_partial_config_updates():
     test_scenarios = [
         # 1. Update top-level configuration
         {
-            "update": {"domain": "updated.example.com", "debug_mode": True},
-            "verify": {"domain": "updated.example.com", "debug_mode": True},
+            "update": {"domain": "updated.example.com"},
+            "verify": {"domain": "updated.example.com"},
         },
         # 2. Update nested host configuration
         {
             "update": {
                 "container": {
-                    "host": {"hostname": "test-host", "ip_address": "10.0.0.1"}
+                    "name": "test-container",
                 }
             },
             "verify": {
                 "container": {
-                    "host": {"hostname": "test-host", "ip_address": "10.0.0.1"}
+                    "name": "test-container",
                 }
             },
         },
         # 3. Update nested podman configuration
         {
             "update": {
-                "container": {
-                    "podman": {
-                        "socket_path": "/custom/podman.sock",
-                        "pull_policy": "never",
-                    }
+                "podman": {
+                    "socket_url": "/custom/podman.sock",
                 }
             },
             "verify": {
-                "container": {
-                    "podman": {
-                        "socket_path": "/custom/podman.sock",
-                        "pull_policy": "never",
-                    }
+                "podman": {
+                    "socket_url": "/custom/podman.sock",
                 }
             },
         },
         # 4. Update multiple nested configurations
         {
-            "update": {
-                "email": "new-admin@example.com",
-                "container": {"max_containers": 25, "host": {"cpu_cores": 16}},
-            },
-            "verify": {
-                "email": "new-admin@example.com",
-                "container": {"max_containers": 25, "host": {"cpu_cores": 16}},
-            },
+            "update": {"email": "new-admin@example.com"},
+            "verify": {"email": "new-admin@example.com"},
         },
     ]
 

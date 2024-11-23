@@ -1,114 +1,18 @@
+import logging
 from fastapi import FastAPI, HTTPException, WebSocket
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, TypeVar, Type
+from pydantic import BaseModel
+from typing import List, Dict, Any, TypeVar
 import copy
 import json
 import yaml
-import os
 
+from configuration.app import Config
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
-
-# Create an absolute workspace directory variable
-WORKSPACE = os.path.dirname(os.path.abspath(__file__))
-
-
-class PodmanConfig(BaseModel):
-    """
-    PodmanConfig is a configuration class for Podman.
-
-    Attributes:
-        socket_url (str): The URL of the Podman socket.
-        timeout (int): The timeout value for Podman operations.
-        tls_verify (bool): Whether to verify TLS certificates.
-        cert_path (Optional[str]): The path to the TLS certificates, if any.
-    """
-
-    socket_url: Optional[str] = Field(default=None, description="Path to Podman socket")
-    timeout: Optional[int] = Field(
-        default=30, description="Timeout value for Podman operations"
-    )
-    tls_verify: Optional[bool] = Field(
-        default=False, description="Verify TLS certificates"
-    )
-    cert_path: Optional[str] = Field(
-        default=None, description="Path to TLS certificates"
-    )
-
-
-class ContainerPaths(BaseModel):
-    """Container path configuration"""
-
-    webroot: str = "/usr/local/apache2/htdocs"
-    ssl_config: str = "/usr/local/apache2/conf/extra/httpd-ssl.conf"
-    cgi_bin: str = "/usr/local/apache2/cgi-bin"
-    letsencrypt: str = "/usr/local/apache2/conf/letsencrypt"
-
-
-class BuildPaths(BaseModel):
-    """Build directory path configuration"""
-
-    root: str = "build"
-    apache: str = "apache"
-    apache_conf: str = "apache/conf"
-    certbot: str = "certbot"
-    webroot: str = "webroot"
-    secrets: str = "secrets"
-
-    def to_absolute_path(self, path: str) -> str:
-        """Convert a relative path to an absolute path"""
-        abs_path = f"{WORKSPACE}/{self.root}/{path}"
-        return abs_path
-
-    def make_path(self, path: str) -> str:
-        """Create a path using the workspace and root directory"""
-        abs_path = self.to_absolute_path(path)
-        os.makedirs(abs_path, exist_ok=True)
-        return abs_path
-
-
-class Config(BaseModel):
-    """Main configuration"""
-
-    domain: str
-    email: Optional[str] = None
-    container_paths: ContainerPaths = ContainerPaths()
-    build_paths: BuildPaths = BuildPaths()
-    podman: PodmanConfig = PodmanConfig()
-
-
-class HostConfig(BaseModel):
-    """Configuration for host machine"""
-
-    hostname: str = Field(description="Hostname of the machine")
-    ip_address: Optional[str] = Field(default=None, description="Primary IP address")
-    cpu_cores: Optional[int] = Field(default=None, description="Number of CPU cores")
-    memory_gb: Optional[float] = Field(default=None, description="Total memory in GB")
-
-
-class ContainerConfig(BaseModel):
-    """Configuration for container management"""
-
-    host: HostConfig
-    podman: PodmanConfig = PodmanConfig()
-    max_containers: Optional[int] = Field(
-        default=10, description="Maximum number of containers"
-    )
-    network_mode: Optional[str] = Field(
-        default="bridge", description="Default container network mode"
-    )
-
-
-class APIConfig(BaseModel):
-    """Comprehensive API Configuration"""
-
-    domain: str = Field(description="Primary domain name")
-    email: str = Field(description="Contact email address")
-    container: ContainerConfig
-
-    # Optional additional configuration
-    debug_mode: Optional[bool] = Field(default=False, description="Enable debug mode")
-    log_level: Optional[str] = Field(default="INFO", description="Logging level")
 
 
 def copy_merge_config(config: T, update_dict: Dict[str, Any]) -> T:
@@ -200,14 +104,9 @@ def print_schema(model: BaseModel):
 app = FastAPI(title="Configurable API")
 
 # Global configuration instance
-api_config = APIConfig(
-    domain="examples.com",
-    email="admin@examples.com",
-    container=ContainerConfig(
-        host=HostConfig(
-            hostname="dev-server", ip_address="192.168.1.100", cpu_cores=4, memory_gb=16
-        )
-    ),
+api_config = Config(
+    domain="example.com",
+    email="admin@example.com",
 )
 
 
@@ -237,8 +136,10 @@ async def update_configuration(new_config: dict):
     Allows partial or full configuration updates
     """
     global api_config
+    logger.info(f"Updating configuration with: {new_config}")
     try:
         api_config = merge_config(api_config, new_config)
         return {"status": "Configuration updated", "config": api_config}
     except Exception as e:
+        logger.error(f"Error updating configuration: {e}")
         raise HTTPException(status_code=400, detail=str(e))
