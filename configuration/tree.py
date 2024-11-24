@@ -28,20 +28,20 @@ class FSTree(BaseModel):
                 return child
         return None
 
-    def tree_root_path(self, root: str, apath: str = None) -> str:
+    def tree_root_path(self, build_root: str, apath: str = None) -> str:
         """Convert a path to a path relative to the tree and root"""
         if apath is None:
             apath = self.path
         if self.parent:
-            abs_path = self.parent.tree_root_path(root) + f"/{apath}"
+            abs_path = self.parent.tree_root_path(build_root) + f"/{apath}"
         else:
-            abs_path = f"{root}/{apath}"
+            abs_path = f"{build_root}/{apath}"
         return abs_path
 
-    def make_path(self, root: str) -> str:
+    def make_path(self, build_root: str) -> str:
         """Create a directory or touch a file path"""
 
-        abs_path = self.tree_root_path(root)
+        abs_path = self.tree_root_path(build_root)
         # Touch a file if it is not a directory
         if not self.isDir:
             # Create the necessary directories
@@ -54,30 +54,30 @@ class FSTree(BaseModel):
 
         return abs_path
 
-    def make_all_paths(self, root: str) -> List[str]:
+    def make_all_paths(self, build_root: str) -> List[str]:
         """Create all directory paths"""
         paths = []
         for child in self.children:
             if child.isDir:
-                path = child.make_path(root)
+                path = child.make_path(build_root)
                 paths.append(path)
-                sub_paths = child.make_all_paths(root)
+                sub_paths = child.make_all_paths(build_root)
                 paths.extend(sub_paths)
             else:
-                path = child.make_path(root)
+                path = child.make_path(build_root)
                 paths.append(path)
         return paths
 
-    def clean(self, root: str):
+    def clean(self, build_root: str):
         """Remove all created directories"""
         for child in self.children:
             if child.isDir:
-                child.clean(root)
+                child.clean(build_root)
             else:
-                abs_path = child.tree_root_path(root)
+                abs_path = child.tree_root_path(build_root)
                 if os.path.exists(abs_path):
                     os.remove(abs_path)
-        abs_path = self.tree_root_path(root)
+        abs_path = self.tree_root_path(build_root)
         if os.path.exists(abs_path):
             if not self.isDir:
                 os.remove(abs_path)
@@ -94,20 +94,10 @@ class TemplateTree(FSTree):
         super().__init__(**data)
         self.isDir = False
 
-    def read_template(self, root: str):
-        """Read a template file"""
-        abs_path = self.tree_root_path(root, self.template_path)
-        with open(abs_path, "r") as file:
-            return file.read()
-
-    def interpolate_template(self, template: str, **kwargs):
-        """Interpolate a template with keyword arguments"""
-        return template.format(**kwargs)
-
-    def render(self, root: str, template_root: Optional[str] = None, **kwargs):
+    def render(self, build_root: str, template_root: Optional[str] = None, **kwargs):
         """Render a template to a file"""
-        abs_path = self.make_path(root)
-        template_root = template_root or root
+        abs_path = self.make_path(build_root)
+        template_root = template_root or build_root
         template_path = f"{template_root}/{self.template_path}"
         env = Environment(loader=FileSystemLoader(os.path.dirname(template_path)))
         template = env.get_template(os.path.basename(self.template_path))
@@ -119,27 +109,27 @@ class TemplateTree(FSTree):
 
 httpd_conf_template = TemplateTree(
     name="httpd.conf",
-    template_path="templates/httpd.conf.template",
+    template_path="httpd.conf.template",
 )
 
 httpd_ssl_template = TemplateTree(
     name="httpd-ssl.conf",
-    template_path="templates/httpd-ssl.conf.template",
+    template_path="httpd-ssl.conf.template",
 )
 
 git_conf_template = TemplateTree(
     name="httpd-git.conf",
-    template_path="templates/httpd-git.conf.template",
+    template_path="httpd-git.conf.template",
 )
 
 dockerfile_template = TemplateTree(
     name="Dockerfile",
-    template_path="templates/Dockerfile.template",
+    template_path="Dockerfile.httpd.template",
 )
 
 html_template = TemplateTree(
     name="index.html",
-    template_path="templates/index.html.template",
+    template_path="index.html.template",
 )
 
 extra = FSTree(

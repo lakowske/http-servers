@@ -36,7 +36,9 @@ class Config(BaseModel):
     """Main configuration"""
 
     domain: str
-    email: Optional[str] = None
+    email: str
+    build_root: str = "build"
+    template_root: str = "templates"
     container: FSTree = container_paths
     build_paths: FSTree = build
     podman: PodmanConfig = PodmanConfig()
