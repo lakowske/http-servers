@@ -2,6 +2,7 @@ import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
 import copy
+from jinja2 import Environment, FileSystemLoader
 
 
 class FSTree(BaseModel):
@@ -20,13 +21,6 @@ class FSTree(BaseModel):
         if self.path is None:
             self.path = self.name
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        for child in self.children:
-            child.parent = self
-        if self.path is None:
-            self.path = self.name
-
     def get(self, name: str) -> Optional["FSTree"]:
         """Get a child node by name"""
         for child in self.children:
@@ -34,20 +28,24 @@ class FSTree(BaseModel):
                 return child
         return None
 
-    def to_absolute_path(self, root: str) -> str:
-        """Convert a relative path to an absolute path"""
+    def tree_root_path(self, root: str, apath: str = None) -> str:
+        """Convert a path to a path relative to the tree and root"""
+        if apath is None:
+            apath = self.path
         if self.parent:
-            abs_path = self.parent.to_absolute_path(root) + f"/{self.name}"
+            abs_path = self.parent.tree_root_path(root) + f"/{apath}"
         else:
-            abs_path = f"{root}/{self.name}"
+            abs_path = f"{root}/{apath}"
         return abs_path
 
     def make_path(self, root: str) -> str:
         """Create a directory or touch a file path"""
 
-        abs_path = self.to_absolute_path(root)
+        abs_path = self.tree_root_path(root)
         # Touch a file if it is not a directory
         if not self.isDir:
+            # Create the necessary directories
+            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
             with open(abs_path, "w"):
                 return abs_path
 
@@ -76,10 +74,10 @@ class FSTree(BaseModel):
             if child.isDir:
                 child.clean(root)
             else:
-                abs_path = child.to_absolute_path(root)
+                abs_path = child.tree_root_path(root)
                 if os.path.exists(abs_path):
                     os.remove(abs_path)
-        abs_path = self.to_absolute_path(root)
+        abs_path = self.tree_root_path(root)
         if os.path.exists(abs_path):
             if not self.isDir:
                 os.remove(abs_path)
@@ -87,10 +85,68 @@ class FSTree(BaseModel):
                 os.rmdir(abs_path)
 
 
+class TemplateTree(FSTree):
+    """A tree node made from a template"""
+
+    template_path: str
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.isDir = False
+
+    def read_template(self, root: str):
+        """Read a template file"""
+        abs_path = self.tree_root_path(root, self.template_path)
+        with open(abs_path, "r") as file:
+            return file.read()
+
+    def interpolate_template(self, template: str, **kwargs):
+        """Interpolate a template with keyword arguments"""
+        return template.format(**kwargs)
+
+    def render(self, root: str, template_root: Optional[str] = None, **kwargs):
+        """Render a template to a file"""
+        abs_path = self.make_path(root)
+        template_root = template_root or root
+        template_path = f"{template_root}/{self.template_path}"
+        env = Environment(loader=FileSystemLoader(os.path.dirname(template_path)))
+        template = env.get_template(os.path.basename(self.template_path))
+        rendered_content = template.render(**kwargs)
+        with open(abs_path, "w") as file:
+            file.write(rendered_content)
+        return abs_path
+
+
+httpd_conf_template = TemplateTree(
+    name="httpd.conf",
+    template_path="templates/httpd.conf.template",
+)
+
+httpd_ssl_template = TemplateTree(
+    name="httpd-ssl.conf",
+    template_path="templates/httpd-ssl.conf.template",
+)
+
+git_conf_template = TemplateTree(
+    name="httpd-git.conf",
+    template_path="templates/httpd-git.conf.template",
+)
+
+dockerfile_template = TemplateTree(
+    name="Dockerfile",
+    template_path="templates/Dockerfile.template",
+)
+
+html_template = TemplateTree(
+    name="index.html",
+    template_path="templates/index.html.template",
+)
+
 extra = FSTree(
     name="extra",
     children=[
-        FSTree(name="httpd-ssl.conf", isDir=False),
+        httpd_ssl_template,
+        git_conf_template,
     ],
 )
 
@@ -103,6 +159,7 @@ apache_conf = FSTree(
         FSTree(name="letsencrypt"),
         FSTree(name="htpasswd", isDir=False),
         FSTree(name="passwd", isDir=False),
+        httpd_conf_template,
     ],
 )
 
@@ -112,6 +169,14 @@ apache = FSTree(
         apache_conf,
         FSTree(name="cgi-bin"),
         FSTree(name="git"),
+        dockerfile_template,
+    ],
+)
+
+webroot = FSTree(
+    name="webroot",
+    children=[
+        html_template,
     ],
 )
 
@@ -119,7 +184,7 @@ build = FSTree(
     name="build",
     children=[
         apache,
-        FSTree(name="webroot"),
+        webroot,
         FSTree(name="secrets"),
         FSTree(name="letsencrypt"),
     ],
