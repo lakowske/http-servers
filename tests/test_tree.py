@@ -17,7 +17,7 @@ def test_build_tree():
     assert len(apache.children) == 4
     apache_conf = build_tree.get("apache").get("conf")
     assert apache_conf.name == "conf"
-    assert len(apache_conf.children) == 7
+    assert len(apache_conf.children) == 8
     # Test to_absolute_path
     abs_path = apache_conf.tree_root_path(WORKSPACE)
     assert abs_path == f"{WORKSPACE}/build/apache/conf"

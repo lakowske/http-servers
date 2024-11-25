@@ -1,8 +1,10 @@
 import os
 from pydantic import BaseModel, Field
 
-from typing import Optional
+from typing import List, Optional
 from configuration.tree import FSTree, container_paths, build
+from auth.auth import UserCredential
+from auth.password import random_password
 
 # Create an absolute workspace directory variable
 MODULE = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +39,9 @@ class AdminContext(BaseModel):
 
     email: str
     domain: str
+    users: List[UserCredential] = [
+        UserCredential(username="git", password=random_password(20))
+    ]
 
 
 class BuildContext(BaseModel):

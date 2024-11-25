@@ -3,7 +3,7 @@ Tree walking functions for dealing with configuration trees.
 """
 
 from pydantic import BaseModel
-from configuration.tree import FSTree, TemplateTree
+from configuration.tree import FSTree, TemplateTree, Htpasswd
 
 
 class TreeWalker:
@@ -16,6 +16,8 @@ class TreeWalker:
         result = None
         if isinstance(node, TemplateTree):
             result = self.on_template_tree(node, context)
+        elif isinstance(node, Htpasswd):
+            result = self.on_htpasswd(node, context)
         else:
             result = self.on_fs_tree(node, context)
 
@@ -37,6 +39,8 @@ class TreeWalker:
         result = None
         if isinstance(node, TemplateTree):
             result = self.on_template_tree(node, context)
+        elif isinstance(node, Htpasswd):
+            result = self.on_htpasswd(node, context)
         else:
             result = self.on_fs_tree(node, context)
 
@@ -59,6 +63,12 @@ class TreeWalker:
         print(f"Path: {node.path}")
         return node
 
+    def on_htpasswd(self, node: Htpasswd, context: BaseModel):
+        """Handle an Htpasswd node"""
+        print(f"Htpasswd: {node.name}")
+        print(f"Path: {node.path}")
+        return node
+
 
 class TreeRenderer(TreeWalker):
     """A class to render FSTree nodes to the filesystem"""
@@ -73,6 +83,11 @@ class TreeRenderer(TreeWalker):
             **context.to_kwargs(),
         )
 
+    def on_htpasswd(self, node, context: BaseModel):
+        return node.render(
+            context.build_context.build_root, users=context.admin_context.users
+        )
+
 
 class TreeRemoval(TreeWalker):
     """A class to remove FSTree nodes from the filesystem"""
@@ -83,6 +98,9 @@ class TreeRemoval(TreeWalker):
 
     def on_template_tree(self, node: TemplateTree, context: BaseModel):
         """Handle a TemplateTree node"""
+        return node.rm_path(context.build_context.build_root)
+
+    def on_htpasswd(self, node, context: BaseModel):
         return node.rm_path(context.build_context.build_root)
 
 

@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 import copy
 from jinja2 import Environment, FileSystemLoader
+from auth.auth import UserCredential, to_htpasswd_file
 
 
 class FSTree(BaseModel):
@@ -87,6 +88,22 @@ class TemplateTree(FSTree):
         return abs_path
 
 
+class Htpasswd(FSTree):
+    """A tree node that represents an htpasswd file"""
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.isDir = False
+
+    def render(self, build_root: str, users: List[UserCredential]):
+        """Render a template to a file"""
+        abs_path = self.make_path(build_root)
+        to_htpasswd_file(users, abs_path)
+        return abs_path
+
+
+htpasswd = Htpasswd(name="htpasswd")
+
 httpd_conf_template = TemplateTree(
     name="httpd.conf",
     template_path="httpd.conf.template",
@@ -130,6 +147,7 @@ apache_conf = FSTree(
         FSTree(name="htpasswd", isDir=False),
         FSTree(name="passwd", isDir=False),
         httpd_conf_template,
+        htpasswd,
     ],
 )
 
