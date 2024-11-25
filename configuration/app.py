@@ -42,7 +42,7 @@ class AdminContext(BaseModel):
 class BuildContext(BaseModel):
     """BuildContext is a configuration class for the build process"""
 
-    build_root: str = "./"
+    build_root: str = "."
     template_root: str = "templates"
 
 

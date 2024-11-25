@@ -1,5 +1,7 @@
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>http-servers project</title>
 </head>
 <body>
@@ -8,3 +10,4 @@
     <p>It is running on port <a href="http://{{ domain }}">80</a> and <a href="https://{{ domain }}">443</a></p>
     <p>The admin's email is {{ email }}</p>
 </body>
+</html>

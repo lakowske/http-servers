@@ -30,9 +30,6 @@ def test_build_tree():
     # Verify path creation
     assert os.path.exists(abs_path)
     assert os.path.exists(apache_conf_ssl_path)
-    # Test make_all_paths
-    paths = build_tree.make_all_paths(WORKSPACE)
-    assert len(paths) == 18
 
 
 def test_container_tree():
@@ -44,19 +41,6 @@ def test_container_tree():
     # Test to_absolute_path
     abs_path = container_tree.tree_root_path(WORKSPACE)
     assert abs_path == f"{WORKSPACE}/{container_tree.path}"
-
-
-def test_clean():
-    build_tree = build
-    build_tree.clean(WORKSPACE)
-
-    paths = build_tree.make_all_paths(WORKSPACE)
-    for path in paths:
-        assert os.path.exists(path)
-
-    build_tree.clean(WORKSPACE)
-    for path in paths:
-        assert not os.path.exists(path)
 
 
 def test_schema_dump():

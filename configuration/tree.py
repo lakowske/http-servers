@@ -54,35 +54,15 @@ class FSTree(BaseModel):
 
         return abs_path
 
-    def make_all_paths(self, build_root: str) -> List[str]:
-        """Create all directory paths"""
-        paths = []
-        for child in self.children:
-            if child.isDir:
-                path = child.make_path(build_root)
-                paths.append(path)
-                sub_paths = child.make_all_paths(build_root)
-                paths.extend(sub_paths)
-            else:
-                path = child.make_path(build_root)
-                paths.append(path)
-        return paths
-
-    def clean(self, build_root: str):
-        """Remove all created directories"""
-        for child in self.children:
-            if child.isDir:
-                child.clean(build_root)
-            else:
-                abs_path = child.tree_root_path(build_root)
-                if os.path.exists(abs_path):
-                    os.remove(abs_path)
+    def rm_path(self, build_root: str) -> str:
+        """Remove a directory or file path"""
         abs_path = self.tree_root_path(build_root)
         if os.path.exists(abs_path):
-            if not self.isDir:
-                os.remove(abs_path)
-            else:
+            if self.isDir:
                 os.rmdir(abs_path)
+            else:
+                os.remove(abs_path)
+        return abs_path
 
 
 class TemplateTree(FSTree):
