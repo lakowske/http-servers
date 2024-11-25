@@ -7,20 +7,15 @@ from configuration.tree import FSTree, TemplateTree, Htpasswd
 
 
 class TreeWalker:
-    """A class to walk through FSTree nodes"""
+    """A class to walk through FSTree nodes.  Users may optionally override
+    the type specific methods to handle different types of nodes, and/or specify
+    a default method to handle nodes that aren't specifically defined."""
 
     def walk(self, node: FSTree, context: BaseModel):
         """Walk through the tree and process the nodes"""
         results = []
 
-        result = None
-        if isinstance(node, TemplateTree):
-            result = self.on_template_tree(node, context)
-        elif isinstance(node, Htpasswd):
-            result = self.on_htpasswd(node, context)
-        else:
-            result = self.on_fs_tree(node, context)
-
+        result = self.process_node(node, context)
         if result:
             results.append(result)
 
@@ -36,18 +31,45 @@ class TreeWalker:
         for child in node.children:
             results.extend(self.depth_first(child, context))
 
-        result = None
-        if isinstance(node, TemplateTree):
-            result = self.on_template_tree(node, context)
-        elif isinstance(node, Htpasswd):
-            result = self.on_htpasswd(node, context)
-        else:
-            result = self.on_fs_tree(node, context)
-
+        result = self.process_node(node, context)
         if result:
             results.append(result)
 
         return results
+
+    def process_node(self, node: FSTree, context: BaseModel):
+        """Process a node based on its type"""
+        if isinstance(node, TemplateTree):
+            return self.call_method("on_template_tree", node, context)
+        elif isinstance(node, Htpasswd):
+            return self.call_method("on_htpasswd", node, context)
+        elif isinstance(node, FSTree):
+            return self.call_method("on_fs_tree", node, context)
+        else:
+            raise ValueError(f"Unknown node type: {node}")
+
+    def call_method(self, method_name: str, node: FSTree, context: BaseModel):
+        """Call a method if it exists, otherwise call a default method"""
+        default_method = getattr(self, "default", self.default)
+        method = getattr(self, method_name, default_method)
+        return method(node, context)
+
+    def default(self, node: FSTree, context: BaseModel):
+        """Handle an FSTree node"""
+        return node
+
+
+class TreeSimplePrinter(TreeWalker):
+
+    def default(self, node: FSTree, context: BaseModel):
+        """Handle an FSTree node"""
+        print(f"FSTree: {node.name}")
+        print(f"Path: {node.path}")
+        print(f"IsDir: {node.isDir}")
+        return node
+
+
+class TreePrinter(TreeWalker):
 
     def on_fs_tree(self, node: FSTree, context: BaseModel):
         """Handle an FSTree node"""
@@ -92,15 +114,8 @@ class TreeRenderer(TreeWalker):
 class TreeRemoval(TreeWalker):
     """A class to remove FSTree nodes from the filesystem"""
 
-    def on_fs_tree(self, node: FSTree, context: BaseModel):
+    def default(self, node: FSTree, context: BaseModel):
         """Handle an FSTree node"""
-        return node.rm_path(context.build_context.build_root)
-
-    def on_template_tree(self, node: TemplateTree, context: BaseModel):
-        """Handle a TemplateTree node"""
-        return node.rm_path(context.build_context.build_root)
-
-    def on_htpasswd(self, node, context: BaseModel):
         return node.rm_path(context.build_context.build_root)
 
 
