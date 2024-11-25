@@ -32,13 +32,30 @@ class PodmanConfig(BaseModel):
     )
 
 
+class AdminContext(BaseModel):
+    """AdminContext is a configuration class for the admin user"""
+
+    email: str
+    domain: str
+
+
+class BuildContext(BaseModel):
+    """BuildContext is a configuration class for the build process"""
+
+    build_root: str = "./"
+    template_root: str = "templates"
+
+
 class Config(BaseModel):
     """Main configuration"""
 
-    domain: str
-    email: str
-    build_root: str = "build"
-    template_root: str = "templates"
+    admin_context: AdminContext
+    build_context: BuildContext = BuildContext()
     container: FSTree = container_paths
     build_paths: FSTree = build
     podman: PodmanConfig = PodmanConfig()
+
+    def to_kwargs(self) -> dict:
+        """Convert the configuration to a dictionary"""
+        kwargs = {**self.admin_context.model_dump(), **self.build_context.model_dump()}
+        return kwargs

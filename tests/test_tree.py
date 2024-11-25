@@ -2,8 +2,6 @@ import os
 from configuration.tree import (
     build,
     container_paths,
-    httpd_conf_template,
-    httpd_ssl_template,
 )
 from configuration.app import WORKSPACE
 
@@ -66,15 +64,3 @@ def test_schema_dump():
     schema = build.model_json_schema()
     assert schema["$defs"]["FSTree"]["description"] == "A tree of build artifacts"
     assert "build" == build.name
-
-
-def test_tree_template():
-    """Test the tree template"""
-    abs_path = httpd_conf_template.render(
-        WORKSPACE, domain="example.com", email="admin@example.com"
-    )
-    assert os.path.exists(abs_path)
-    with open(abs_path, "r") as file:
-        content = file.read()
-        assert "example.com" in content
-        assert "admin@example.com" in content

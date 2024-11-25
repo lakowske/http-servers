@@ -47,11 +47,13 @@ class TreeRenderer:
 
     def on_fs_tree(self, node: FSTree, context: BaseModel):
         """Handle an FSTree node"""
-        node.make_path(context.build_root)
+        node.make_path(context.build_context.build_root)
 
     def on_template_tree(self, node: TemplateTree, context: BaseModel):
         """Handle a TemplateTree node"""
-        node.render(context.build_root, context.template_root)
+        node.render(
+            **context.to_kwargs(),
+        )
 
 
 def print_tree(node: FSTree, context: BaseModel):
