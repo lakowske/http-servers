@@ -132,10 +132,7 @@ class TreeRenderer(TreeWalker):
             context.build_context.build_root, users=context.admin_context.users
         )
 
-    def on_passwd(self, node: Passwd, context: BaseModel):
-        return node.render(
-            context.build_context.build_root, users=context.admin_context.users
-        )
+    on_passwd = on_htpasswd
 
     def on_self_signed_certs(self, node: SelfSignedCerts, context: BaseModel):
         return node.render(
