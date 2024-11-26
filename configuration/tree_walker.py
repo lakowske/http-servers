@@ -3,7 +3,13 @@ Tree walking functions for dealing with configuration trees.
 """
 
 from pydantic import BaseModel
-from configuration.tree import FSTree, TemplateTree, Htpasswd
+from configuration.tree_nodes import (
+    FSTree,
+    TemplateTree,
+    Htpasswd,
+    Passwd,
+    SelfSignedCerts,
+)
 
 
 class TreeWalker:
@@ -43,6 +49,10 @@ class TreeWalker:
             return self.call_method("on_template_tree", node, context)
         elif isinstance(node, Htpasswd):
             return self.call_method("on_htpasswd", node, context)
+        elif isinstance(node, Passwd):
+            return self.call_method("on_passwd", node, context)
+        elif isinstance(node, SelfSignedCerts):
+            return self.call_method("on_self_signed_certs", node, context)
         elif isinstance(node, FSTree):
             return self.call_method("on_fs_tree", node, context)
         else:
@@ -91,6 +101,18 @@ class TreePrinter(TreeWalker):
         print(f"Path: {node.path}")
         return node
 
+    def on_passwd(self, node: Passwd, context: BaseModel):
+        """Handle an Passwd node"""
+        print(f"Passwd: {node.name}")
+        print(f"Path: {node.path}")
+        return node
+
+    def on_self_signed_certs(self, node: SelfSignedCerts, context: BaseModel):
+        """Handle an SelfSignedCerts node"""
+        print(f"SelfSignedCerts: {node.name}")
+        print(f"Path: {node.path}")
+        return node
+
 
 class TreeRenderer(TreeWalker):
     """A class to render FSTree nodes to the filesystem"""
@@ -105,9 +127,19 @@ class TreeRenderer(TreeWalker):
             **context.to_kwargs(),
         )
 
-    def on_htpasswd(self, node, context: BaseModel):
+    def on_htpasswd(self, node: Htpasswd, context: BaseModel):
         return node.render(
             context.build_context.build_root, users=context.admin_context.users
+        )
+
+    def on_passwd(self, node: Passwd, context: BaseModel):
+        return node.render(
+            context.build_context.build_root, users=context.admin_context.users
+        )
+
+    def on_self_signed_certs(self, node: SelfSignedCerts, context: BaseModel):
+        return node.render(
+            context.build_context.build_root, admin_context=context.admin_context
         )
 
 

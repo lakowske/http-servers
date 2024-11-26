@@ -7,6 +7,7 @@ import json
 import yaml
 
 from configuration.app import Config
+from configuration.tree_nodes import AdminContext
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -105,8 +106,10 @@ app = FastAPI(title="Configurable API")
 
 # Global configuration instance
 api_config = Config(
-    domain="example.com",
-    email="admin@example.com",
+    admin_context=AdminContext(
+        domain="example.com",
+        email="admin@example.com",
+    )
 )
 
 

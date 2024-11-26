@@ -2,9 +2,7 @@ import os
 from pydantic import BaseModel, Field
 
 from typing import List, Optional
-from configuration.tree import FSTree, container_paths, build
-from auth.auth import UserCredential
-from auth.password import random_password
+from configuration.tree_nodes import FSTree, AdminContext, container_paths, build
 
 # Create an absolute workspace directory variable
 MODULE = os.path.dirname(os.path.abspath(__file__))
@@ -32,16 +30,6 @@ class PodmanConfig(BaseModel):
     cert_path: Optional[str] = Field(
         default=None, description="Path to TLS certificates"
     )
-
-
-class AdminContext(BaseModel):
-    """AdminContext is a configuration class for the admin user"""
-
-    email: str
-    domain: str
-    users: List[UserCredential] = [
-        UserCredential(username="git", password=random_password(20))
-    ]
 
 
 class BuildContext(BaseModel):

@@ -1,9 +1,26 @@
 import os
-from typing import List, Optional
-from pydantic import BaseModel, Field
 import copy
+from typing import List, Optional
 from jinja2 import Environment, FileSystemLoader
-from auth.auth import UserCredential, to_htpasswd_file
+from auth.auth import UserCredential, to_htpasswd_file, to_passwd_file
+from auth.certificates import generate_self_signed_cert
+from pydantic import BaseModel, Field
+from auth.auth import UserCredential
+from auth.password import random_password
+
+
+class AdminContext(BaseModel):
+    """AdminContext is a configuration class for the admin user"""
+
+    email: str
+    domain: str
+    country: str = "US"
+    state: str = "Wisconsin"
+    locality: str = "Sun Prairie"
+    organization: str = "Acme Inc"
+    users: List[UserCredential] = [
+        UserCredential(username="git", password=random_password(20))
+    ]
 
 
 class FSTree(BaseModel):
@@ -47,8 +64,10 @@ class FSTree(BaseModel):
         if not self.isDir:
             # Create the necessary directories
             os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-            with open(abs_path, "w"):
-                return abs_path
+            # Check if the file exists, if not create it
+            if not os.path.exists(abs_path):
+                with open(abs_path, "w"):
+                    return abs_path
 
         if not os.path.exists(abs_path):
             os.makedirs(abs_path)
@@ -102,7 +121,53 @@ class Htpasswd(FSTree):
         return abs_path
 
 
+class Passwd(FSTree):
+    """A tree node that represents an passwd file"""
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.isDir = False
+
+    def render(self, build_root: str, users: List[UserCredential]):
+        """Render a template to a file"""
+        abs_path = self.make_path(build_root)
+        to_passwd_file(users, abs_path)
+        return abs_path
+
+
+class SelfSignedCerts(FSTree):
+    """A tree node that represents a self-signed certificate"""
+
+    def __init__(
+        self,
+        children=[FSTree(name="server-cert.pem"), FSTree(name="server-key.pem")],
+        **data,
+    ):
+        super().__init__(children=children, **data)
+
+    def render(self, build_root: str, admin_context: AdminContext):
+        """Render a template to a file"""
+        abs_path = self.make_path(build_root)
+        generate_self_signed_cert(
+            admin_context.domain,
+            abs_path,
+            country=admin_context.country,
+            state=admin_context.state,
+            locality=admin_context.locality,
+            organization=admin_context.organization,
+        )
+        return abs_path
+
+
 htpasswd = Htpasswd(name="htpasswd")
+passwd = Passwd(name="passwd")
+ssl = SelfSignedCerts(
+    name="ssl",
+    children=[
+        FSTree(name="server-cert.pem", isDir=False),
+        FSTree(name="server-key.pem", isDir=False),
+    ],
+)
 
 httpd_conf_template = TemplateTree(
     name="httpd.conf",
@@ -141,8 +206,8 @@ apache_conf = FSTree(
     name="conf",
     children=[
         extra,
+        ssl,
         FSTree(name="live"),
-        FSTree(name="ssl"),
         FSTree(name="letsencrypt"),
         FSTree(name="htpasswd", isDir=False),
         FSTree(name="passwd", isDir=False),
@@ -168,12 +233,19 @@ webroot = FSTree(
     ],
 )
 
+secrets = FSTree(
+    name="secrets",
+    children=[
+        passwd,
+    ],
+)
+
 build = FSTree(
     name="build",
     children=[
         apache,
         webroot,
-        FSTree(name="secrets"),
+        secrets,
         FSTree(name="letsencrypt"),
     ],
 )
