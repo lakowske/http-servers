@@ -7,7 +7,7 @@ from dependency_injector import providers
 from dependency_injector.wiring import inject, Provide
 from configuration.container import ServerContainer
 from configuration.config_loader import load_configs
-from services.service import PodmanService
+from services.podman_service import PodmanService
 
 
 @inject
@@ -58,6 +58,34 @@ class TestContainer(unittest.TestCase):
         self.assertIsNotNone(podman_service)
         self.assertEqual(podman_service.podman_config, podman_config)
         self.assertIsNotNone(podman_service.get_client())
+
+    def test_app_config(self):
+        """
+        Test that the container can create an AppConfig instance.
+        """
+        # Act
+        app_config = self.container.app_config()
+
+        # Assert
+        self.assertIsNotNone(app_config)
+        self.assertEqual(app_config.admin_context.domain, "example.com")
+        self.assertEqual(app_config.admin_context.email, "admin@example.com")
+
+    def test_mail_service(self):
+        """
+        Test that the container can create a MailService instance.
+        """
+        # Act
+        email_service = self.container.email_service()
+
+        # Assert
+        self.assertIsNotNone(email_service)
+        self.assertEqual(email_service.imap.server, "localhost")
+        self.assertEqual(email_service.imap.port, 1143)
+        self.assertIsNone(email_service.imap.username)
+        self.assertIsNone(email_service.imap.password)
+        self.assertEqual(email_service.smtp.server, "localhost")
+        self.assertEqual(email_service.smtp.port, 1025)
 
     def test_wiring(self):
         """

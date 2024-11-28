@@ -1,83 +1,23 @@
+"""
+FastAPI application with configuration management
+"""
+
+from typing import Dict, Any, TypeVar
+import json
 import logging
 from fastapi import FastAPI, HTTPException, WebSocket
 from pydantic import BaseModel
-from typing import List, Dict, Any, TypeVar
-import copy
-import json
-import yaml
+
 
 from configuration.app import Config
 from configuration.tree_nodes import AdminContext
+from services.config_service import merge_config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
-
-
-def copy_merge_config(config: T, update_dict: Dict[str, Any]) -> T:
-    """
-    Merge a configuration object with a dictionary update
-
-    Args:
-        config: Original configuration object
-        update_dict: Dictionary containing updates
-
-    Returns:
-        Updated configuration object
-    """
-    # Create a deep copy to avoid modifying the original
-    merged_config = copy.deepcopy(config)
-
-    for key, value in update_dict.items():
-        # Handle nested dictionaries recursively
-        if hasattr(merged_config, key):
-            current_value = getattr(merged_config, key)
-
-            # Recursive merge for nested objects
-            if isinstance(value, dict) and hasattr(current_value, "__dict__"):
-                nested_config = merge_config(current_value, value)
-                setattr(merged_config, key, nested_config)
-            else:
-                # Direct attribute update
-                setattr(merged_config, key, value)
-
-    return merged_config
-
-
-def merge_config(existing_config: BaseModel, update_dict: Dict[str, Any]) -> BaseModel:
-    """
-    Merge a configuration object with a dictionary update
-
-    Args:
-        existing_config: Original configuration object
-        update_dict: Dictionary containing updates
-
-    Returns:
-        Updated configuration object
-    """
-    for key, value in update_dict.items():
-        if isinstance(value, dict):
-            nested_config = getattr(existing_config, key)
-            updated_nested_config = merge_config(nested_config, value)
-            setattr(existing_config, key, updated_nested_config)
-        else:
-            setattr(existing_config, key, value)
-    return existing_config
-
-
-def load_config(file_path: str) -> Config:
-    """Load configuration from a YAML file"""
-    with open(file_path, "r", encoding="utf-8") as file:
-        config_data = yaml.safe_load(file)
-    return Config(**config_data)
-
-
-def load_json_config(json_str: str) -> Config:
-    """Update the configuration with JSON input"""
-    json_data = json.loads(json_str)
-    return Config(**json_data)
 
 
 def parse_dot_notation_args(dot_notation_args: list) -> dict:
@@ -115,6 +55,9 @@ api_config = Config(
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for retrieving and updating configuration
+    """
     await websocket.accept()
     while True:
         data = await websocket.receive_text()

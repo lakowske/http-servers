@@ -5,4 +5,7 @@ podman:
   socket_url: "unix:///var/run/podman/podman.sock"
   timeout: 30
   tls_verify: true
+imap:
+  server: "imap.example.com"
+  port: 993
 test_value: 28

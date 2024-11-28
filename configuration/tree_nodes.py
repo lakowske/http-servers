@@ -1,3 +1,7 @@
+"""
+This module contains the abstract nodes for the build process.
+"""
+
 import os
 import copy
 from typing import List, Optional
@@ -51,7 +55,8 @@ class FSTree(BaseModel):
         if apath is None:
             apath = self.path
         if self.parent:
-            abs_path = self.parent.tree_root_path(build_root) + f"/{apath}"
+            parent_node: FSTree = self.parent
+            abs_path = parent_node.tree_root_path(build_root) + f"/{apath}"
         else:
             abs_path = f"{build_root}/{apath}"
         return abs_path
