@@ -12,3 +12,5 @@ __pycache__/
 *.pyc
 servenv/
 
+# Secret files
+email-secrets.yaml

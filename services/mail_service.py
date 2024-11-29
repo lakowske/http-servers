@@ -2,7 +2,7 @@
 A service to provide email functionality.
 """
 
-from mail.imap import fetch_email
+from mail.imap import fetch_email, fetch_first
 from mail.smtp import send_email
 from configuration.app import ImapConfig, SmtpConfig
 
@@ -20,7 +20,18 @@ class MailService:
         """
         Fetch email from the imap server.
         """
-        fetch_email(
+        return fetch_email(
+            self.imap.server,
+            self.imap.port,
+            self.imap.username,
+            self.imap.password,
+        )
+
+    def fetch_first_email(self):
+        """
+        Fetch the first email from the imap server.
+        """
+        return fetch_first(
             self.imap.server,
             self.imap.port,
             self.imap.username,
@@ -31,7 +42,7 @@ class MailService:
         """
         Send an email using the smtp server.
         """
-        send_email(
+        return send_email(
             self.smtp.username,
             self.smtp.password,
             self.smtp.sender_email,

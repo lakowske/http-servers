@@ -5,8 +5,8 @@ A module that allows users to read and update configuration settings.
 from typing import Any, Dict, Optional, TypeVar
 import copy
 import json
-import yaml
 import logging
+import yaml
 from pydantic import BaseModel
 
 
@@ -66,7 +66,7 @@ def merge_config(existing_config: BaseModel, update_dict: Dict[str, Any]) -> Bas
                 setattr(existing_config, key, value)
             else:
                 # Let's log a warning if the attribute does not exist
-                logger.warning(f"Attribute {key} does not exist in the configuration")
+                logger.warning("Attribute %s does not exist in the configuration", key)
 
     return existing_config
 

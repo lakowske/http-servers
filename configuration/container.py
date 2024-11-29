@@ -37,13 +37,13 @@ def create_app_config(config) -> Config:
     return app_config
 
 
-def create_mail_service(app_config: Config) -> MailService:
+def create_mail_service(config_service: ConfigService) -> MailService:
     """
     Creates a MailService object from an AppConfig object.
     """
     return MailService(
-        imap=app_config.imap,
-        smtp=app_config.smtp,
+        imap=config_service.config.imap,
+        smtp=config_service.config.smtp,
     )
 
 
@@ -79,7 +79,7 @@ class ServerContainer(containers.DeclarativeContainer):
 
     podman_service = providers.Factory(PodmanService, podman_config=podman_config)
 
-    email_service = providers.Factory(
+    mail_service = providers.Factory(
         create_mail_service,
-        app_config=app_config,
+        config_service=config_service,
     )

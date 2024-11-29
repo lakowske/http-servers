@@ -71,12 +71,12 @@ class TestContainer(unittest.TestCase):
         self.assertEqual(app_config.admin_context.domain, "example.com")
         self.assertEqual(app_config.admin_context.email, "admin@example.com")
 
-    def test_mail_service(self):
+    def test_mail_service_provider(self):
         """
         Test that the container can create a MailService instance.
         """
         # Act
-        email_service = self.container.email_service()
+        email_service = self.container.mail_service()
 
         # Assert
         self.assertIsNotNone(email_service)
