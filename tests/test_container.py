@@ -97,6 +97,17 @@ class TestContainer(unittest.TestCase):
         # Assert
         self.assertIsNotNone(config_service)
         self.assertIsNotNone(config_service.config)
+        # Load the test config and verify that the values were merged/overwritten
+        updates = config_service.load_yaml_config("tests/test-config.yaml")
+        self.assertIsNotNone(updates)
+        server = updates["imap"]["server"]
+        user = updates["imap"]["username"]
+        password = updates["imap"]["password"]
+        port = updates["imap"]["port"]
+        self.assertEqual(config_service.config.imap.server, server)
+        self.assertEqual(config_service.config.imap.port, port)
+        self.assertEqual(config_service.config.imap.username, user)
+        self.assertEqual(config_service.config.imap.password, password)
 
     def test_wiring(self):
         """

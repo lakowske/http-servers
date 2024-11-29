@@ -8,4 +8,6 @@ podman:
 imap:
   server: "imap.example.com"
   port: 993
+  username: "test-user"
+  password: "test-password"
 test_value: 28
