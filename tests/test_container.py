@@ -87,6 +87,17 @@ class TestContainer(unittest.TestCase):
         self.assertEqual(email_service.smtp.server, "localhost")
         self.assertEqual(email_service.smtp.port, 1025)
 
+    def test_config_service(self):
+        """
+        Test that the container can create a ConfigService instance.
+        """
+        # Act
+        config_service = self.container.config_service()
+
+        # Assert
+        self.assertIsNotNone(config_service)
+        self.assertIsNotNone(config_service.config)
+
     def test_wiring(self):
         """
         Verify that wiring worked.

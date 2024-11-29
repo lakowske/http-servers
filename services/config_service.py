@@ -2,12 +2,15 @@
 A module that allows users to read and update configuration settings.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, TypeVar
+import copy
 import json
 import yaml
 from pydantic import BaseModel
 
 from configuration.app import Config
+
+T = TypeVar("T")
 
 
 def load_config(file_path: str) -> Config:
