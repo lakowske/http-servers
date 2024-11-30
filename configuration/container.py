@@ -26,20 +26,6 @@ def create_podman_config(config) -> PodmanConfig:
     )
 
 
-def create_app_config(config) -> Config:
-    """
-    Creates an AppConfig object from a configuration dictionary.
-    """
-    # Global configuration instance
-    app_config = Config(
-        admin_context=AdminContext(
-            domain="example.com",
-            email="admin@example.com",
-        )
-    )
-    return app_config
-
-
 def create_imap_service(config_service: ConfigService) -> ImapService:
     """
     Creates an ImapService object from an AppConfig object.
@@ -59,6 +45,13 @@ def to_smtp_config(config_service: ConfigService) -> SmtpConfig:
     Converts a ConfigService object to an SmtpConfig object.
     """
     return config_service.config.smtp
+
+
+def to_podman_config(config_service: ConfigService) -> PodmanConfig:
+    """
+    Converts a ConfigService object to an PodmanConfig object.
+    """
+    return config_service.config.podman
 
 
 def create_config_service() -> ConfigService:
@@ -83,26 +76,16 @@ class ServerContainer(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    loaded_configs = providers.Factory(load_configs, config_path="config.yaml")
-
-    app_config = providers.Singleton(create_app_config, config=loaded_configs)
-
-    podman_config = providers.Singleton(create_podman_config, config=loaded_configs)
-
     config_service = providers.Singleton(create_config_service)
 
-    podman_service = providers.Factory(PodmanService, podman_config=podman_config)
+    podman_config = providers.Singleton(to_podman_config, config_service=config_service)
 
     imap_config = providers.Factory(to_imap_config, config_service=config_service)
 
     smtp_config = providers.Factory(to_smtp_config, config_service=config_service)
 
-    imap_service = providers.Singleton(
-        ImapService,
-        imap_config=imap_config,
-    )
+    podman_service = providers.Factory(PodmanService, podman_config=podman_config)
 
-    smtp_service = providers.Singleton(
-        SmtpService,
-        smtp_config=smtp_config,
-    )
+    imap_service = providers.Singleton(ImapService, imap_config=imap_config)
+
+    smtp_service = providers.Singleton(SmtpService, smtp_config=smtp_config)

@@ -3,17 +3,17 @@ This module contains the tests for the container module.
 """
 
 import unittest
-from dependency_injector import providers
+import podman
 from dependency_injector.wiring import inject, Provide
 from configuration.container import ServerContainer
-from configuration.config_loader import load_configs
+from services.config_service import ConfigService
 from services.podman_service import PodmanService
 
 
 @inject
 def create_podman_client(
     podman_service: PodmanService = Provide[ServerContainer.podman_service],
-):
+) -> podman.PodmanClient:
     """A simple injection function to create a Podman client."""
     return podman_service.get_client()
 
@@ -26,9 +26,8 @@ class TestContainer(unittest.TestCase):
     def setUp(self) -> None:
         self.container = ServerContainer()
         # Initialize the container with the test config
-        self.container.loaded_configs.override(
-            providers.Factory(load_configs, config_path="tests/test-config.yaml")
-        )
+        config_service: ConfigService = self.container.config_service()
+        config_service.load_yaml_config("tests/test-config.yaml")
         # Wire the container
         self.container.wire(modules=[__name__])
 
@@ -36,10 +35,9 @@ class TestContainer(unittest.TestCase):
         """
         Test that the container can load custom test-config.yaml configuration
         """
-        full_config = self.container.loaded_configs()
-        self.assertIsInstance(full_config, dict)
-        self.assertIn("podman", full_config)
-        self.assertEqual(28, full_config["test_value"])
+        full_config = self.container.config_service()
+        self.assertIsNotNone(full_config)
+        self.assertEqual(full_config.config.imap.server, "imap.example.com")
 
     def test_podman_service(self):
         """
@@ -58,18 +56,6 @@ class TestContainer(unittest.TestCase):
         self.assertIsNotNone(podman_service)
         self.assertEqual(podman_service.podman_config, podman_config)
         self.assertIsNotNone(podman_service.get_client())
-
-    def test_app_config(self):
-        """
-        Test that the container can create an AppConfig instance.
-        """
-        # Act
-        app_config = self.container.app_config()
-
-        # Assert
-        self.assertIsNotNone(app_config)
-        self.assertEqual(app_config.admin_context.domain, "example.com")
-        self.assertEqual(app_config.admin_context.email, "admin@example.com")
 
     def test_config_service(self):
         """
@@ -102,3 +88,4 @@ class TestContainer(unittest.TestCase):
 
         # Assert
         self.assertIsNotNone(podman_client)
+        self.assertIsInstance(podman_client, podman.PodmanClient)
