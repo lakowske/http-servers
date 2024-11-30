@@ -6,9 +6,12 @@ from dependency_injector import containers, providers
 from configuration.config_loader import load_configs
 from configuration.tree_nodes import AdminContext
 from configuration.app import PodmanConfig, Config
+from configuration.app import ImapConfig
+from configuration.app import SmtpConfig
 from services.podman_service import PodmanService
-from services.mail_service import MailService
 from services.config_service import ConfigService
+from mail.imap import ImapService
+from mail.smtp import SmtpService
 
 
 def create_podman_config(config) -> PodmanConfig:
@@ -37,14 +40,25 @@ def create_app_config(config) -> Config:
     return app_config
 
 
-def create_mail_service(config_service: ConfigService) -> MailService:
+def create_imap_service(config_service: ConfigService) -> ImapService:
     """
-    Creates a MailService object from an AppConfig object.
+    Creates an ImapService object from an AppConfig object.
     """
-    return MailService(
-        imap=config_service.config.imap,
-        smtp=config_service.config.smtp,
-    )
+    return ImapService(config_service.config.imap)
+
+
+def to_imap_config(config_service: ConfigService) -> ImapConfig:
+    """
+    Converts a ConfigService object to an ImapConfig object.
+    """
+    return config_service.config.imap
+
+
+def to_smtp_config(config_service: ConfigService) -> SmtpConfig:
+    """
+    Converts a ConfigService object to an SmtpConfig object.
+    """
+    return config_service.config.smtp
 
 
 def create_config_service() -> ConfigService:
@@ -79,7 +93,16 @@ class ServerContainer(containers.DeclarativeContainer):
 
     podman_service = providers.Factory(PodmanService, podman_config=podman_config)
 
-    mail_service = providers.Factory(
-        create_mail_service,
-        config_service=config_service,
+    imap_config = providers.Factory(to_imap_config, config_service=config_service)
+
+    smtp_config = providers.Factory(to_smtp_config, config_service=config_service)
+
+    imap_service = providers.Singleton(
+        ImapService,
+        imap_config=imap_config,
+    )
+
+    smtp_service = providers.Singleton(
+        SmtpService,
+        smtp_config=smtp_config,
     )

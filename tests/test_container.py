@@ -71,22 +71,6 @@ class TestContainer(unittest.TestCase):
         self.assertEqual(app_config.admin_context.domain, "example.com")
         self.assertEqual(app_config.admin_context.email, "admin@example.com")
 
-    def test_mail_service_provider(self):
-        """
-        Test that the container can create a MailService instance.
-        """
-        # Act
-        email_service = self.container.mail_service()
-
-        # Assert
-        self.assertIsNotNone(email_service)
-        self.assertEqual(email_service.imap.server, "localhost")
-        self.assertEqual(email_service.imap.port, 1143)
-        self.assertIsNone(email_service.imap.username)
-        self.assertIsNone(email_service.imap.password)
-        self.assertEqual(email_service.smtp.server, "localhost")
-        self.assertEqual(email_service.smtp.port, 1025)
-
     def test_config_service(self):
         """
         Test that the container can create a ConfigService instance.
