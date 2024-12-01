@@ -16,6 +16,18 @@ config_service = container.config_service()
 config_service.load_yaml_config("email-secrets.yaml")
 
 
+def test_imap_search():
+    """
+    Test that the mail service can search for emails.
+    """
+    imap = container.imap_service()
+    e, mail = imap.search("ALL")
+    assert e is None
+    assert mail is not None
+    messages = len(mail)
+    assert messages >= 0
+
+
 def test_imap_inbox_size():
     """
     Test that the mail service can get the size of the inbox.
@@ -50,7 +62,7 @@ def test_smtp_send_email():
     mail = Email(
         to=TEST_ADDRESS,
         from_=TEST_ADDRESS,
-        subject=f"Test Email {message_uuid}",
+        subject=f"__Email Test {message_uuid}",
         body=f"This is a test email {message_uuid} from the mail service.",
     )
 
@@ -70,7 +82,7 @@ def test_roundtrip_email():
     mail = Email(
         to=TEST_ADDRESS,
         from_=TEST_ADDRESS,
-        subject=f"Round Trip Email Test {message_uuid}",
+        subject=f"__Email Test {message_uuid} Round Trip",
         body=f"This is a test email {message_uuid} from the mail service.",
     )
 
@@ -82,10 +94,36 @@ def test_roundtrip_email():
         e, mails = imap.fetch_from(TEST_ADDRESS)
         if e is None and mails is not None:
             for some_mail in mails:
-                if some_mail.subject == f"Round Trip Email Test {message_uuid}":
+                if some_mail.subject == f"__Email Test {message_uuid} Round Trip":
                     return some_mail
         return None
 
     # Wait a while for the email to arrive
     result = imap.poll(check_for_email, interval=1, timeout=30)
     assert result is not None
+
+
+def test_delete_email():
+    """
+    Test that the mail service can delete an email.
+    """
+    imap = container.imap_service()
+
+    def check_for_email(imap):
+        e, mails = imap.fetch_from(TEST_ADDRESS)
+        if e is None and mails is not None:
+            for some_mail in mails:
+                # Check if the mail contains Email Test
+                if "Email Test" in some_mail.subject:
+                    return some_mail
+        return None
+
+    # Wait a while for the email to arrive
+    result = imap.poll(check_for_email, interval=1, timeout=20)
+    assert result is not None
+
+    e, mails = imap.fetch_from(TEST_ADDRESS)
+    for mail in mails:
+        e, mail_id = imap.delete_email(mail.imap_id)
+        assert e is None
+        assert mail_id == mail.imap_id

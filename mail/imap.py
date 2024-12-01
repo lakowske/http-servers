@@ -19,6 +19,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+class ImapEmail(Email):
+    """
+    An email object that includes the imap id of the email from a
+    IMAP call (e.g. search).
+    """
+
+    imap_id: str
+
+
 def parse_raw_email(raw_email: bytes) -> Email:
     """
     Parse a raw email into an Email object.
@@ -51,6 +60,20 @@ def parse_raw_email(raw_email: bytes) -> Email:
         body=body,
     )
     return mail
+
+
+def parse_imap_email(raw_email: bytes, imap_id: str) -> ImapEmail:
+    """
+    Parse a raw email into an ImapEmail object.
+    """
+    mail = parse_raw_email(raw_email)
+    return ImapEmail(
+        imap_id=imap_id,
+        to=mail.to,
+        from_=mail.from_,
+        subject=mail.subject,
+        body=mail.body,
+    )
 
 
 class ImapService:
@@ -97,12 +120,16 @@ class ImapService:
                 return Exception(f"Failed to fetch emails: {result}"), None
 
             email_ids = data[0].split()
+            # Decode the email ids to strings
+            email_ids = [email_id.decode() for email_id in email_ids]
             return None, email_ids
         except imaplib.IMAP4.error as e:
             logger.error(IMAP_ERROR_MSG, e)
             return e, None
 
-    def fetch_email(self, email_id: str) -> Tuple[Optional[Exception], Optional[Email]]:
+    def fetch_email(
+        self, email_id: str
+    ) -> Tuple[Optional[Exception], Optional[ImapEmail]]:
         """
         Fetch an email from the IMAP server.
         """
@@ -114,9 +141,9 @@ class ImapService:
                 return Exception(f"Failed to fetch email: {result}"), None
 
             raw_email = data[0][1]
-            return None, parse_raw_email(raw_email)
+            return None, parse_imap_email(raw_email, email_id)
         except imaplib.IMAP4.error as e:
-            logger.error("IMAP error: %s", e)
+            logger.error(IMAP_ERROR_MSG, e)
             return e, None
 
     def delete_email(self, email_id: str) -> Optional[Exception]:
@@ -136,10 +163,10 @@ class ImapService:
                 logger.error("Failed to expunge emails: %s", result)
                 return Exception(f"Failed to expunge emails: {result}")
 
-            return None
+            return None, email_id
         except imaplib.IMAP4.error as e:
-            logger.error("IMAP error: %s", e)
-            return e
+            logger.error(IMAP_ERROR_MSG, e)
+            return e, None
 
     def inbox_size(self) -> Tuple[Optional[Exception], Optional[int]]:
         """
@@ -156,7 +183,7 @@ class ImapService:
         """
         return self.search("ALL")
 
-    def fetch_all(self) -> Tuple[Optional[Exception], Optional[List[Email]]]:
+    def fetch_all(self) -> Tuple[Optional[Exception], Optional[List[ImapEmail]]]:
         """
         Fetch all emails from the IMAP server.
         """
@@ -174,7 +201,7 @@ class ImapService:
 
     def fetch_from(
         self, from_email_address: str
-    ) -> Tuple[Optional[Exception], Optional[List[Email]]]:
+    ) -> Tuple[Optional[Exception], Optional[List[ImapEmail]]]:
         """
         Fetch the first email from the IMAP server.
         """
