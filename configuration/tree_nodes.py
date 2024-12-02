@@ -247,12 +247,7 @@ secrets = FSTree(
 
 build = FSTree(
     name="build",
-    children=[
-        apache,
-        webroot,
-        secrets,
-        FSTree(name="letsencrypt"),
-    ],
+    children=[apache, webroot, secrets, FSTree(name="letsencrypt"), FSTree(name="cgi")],
 )
 
 

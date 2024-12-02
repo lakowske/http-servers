@@ -2,6 +2,7 @@
 This module provides a service for interacting with Podman containers.
 """
 
+from typing import List, Tuple
 import podman
 from configuration.app import PodmanConfig
 
@@ -62,3 +63,44 @@ class PodmanService:
         """
         with self.get_client() as client:
             return client.containers.list()
+
+    def build_image(
+        self, path: str, dockerfile: str, tag: str
+    ) -> Tuple[str, List[str]]:
+        """
+        Build an image.
+
+        This method builds an image using the client obtained from the `get_client` method.
+
+        Returns:
+            list: A list of image objects.
+        """
+        with self.get_client() as client:
+            return client.images.build(path=path, dockerfile=dockerfile, tag=tag)
+
+    def run_container(
+        self,
+        image: str,
+        name: str,
+        ports: dict,
+        mounts: List,
+        environment: dict,
+        detach: bool = True,
+    ):
+        """
+        Run a container.
+
+        This method runs a container using the client obtained from the `get_client` method.
+
+        Returns:
+            list: A list of container objects.
+        """
+        with self.get_client() as client:
+            return client.containers.run(
+                image=image,
+                name=name,
+                ports=ports,
+                mounts=mounts,
+                environment=environment,
+                detach=detach,
+            )
