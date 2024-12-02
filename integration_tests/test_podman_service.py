@@ -1,11 +1,16 @@
+"""
+Integration tests for the podman service.
+"""
+
 import os
 from configuration.container import ServerContainer
 from configuration.app import WORKSPACE
-
+from http_server.health_check import healthcheck
 
 container = ServerContainer()
 podman_service = container.podman_service()
 config_service = container.config_service()
+config_service.load_yaml_config("secrets/config.yaml")
 
 
 def test_podman_list_containers():
@@ -103,3 +108,22 @@ def test_podman_run_container():
     )
 
     assert container_id is not None
+
+
+def test_http_healthcheck():
+    """
+    Test that the podman service can perform an http healthcheck on a container.
+    """
+    assert healthcheck("localhost")
+
+
+def test_podman_rm_container():
+    """
+    Test that the podman service can remove a container.
+    """
+    container_id = podman_service.get_container_id("httpd-nexus")
+    assert container_id is not None
+    podman_service.stop_container(container_id)
+    podman_service.rm_container(container_id)
+    container_id = podman_service.get_container_id("httpd-nexus")
+    assert container_id is None

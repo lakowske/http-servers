@@ -104,3 +104,42 @@ class PodmanService:
                 environment=environment,
                 detach=detach,
             )
+
+    def get_container_id(self, container_name: str):
+        """
+        Get the container ID.
+
+        This method retrieves the container ID using the client obtained from the `get_client` method.
+
+        Returns:
+            str: The container ID.
+        """
+        with self.get_client() as client:
+            try:
+                return client.containers.get(container_name).id
+            except podman.errors.NotFound:
+                return None
+
+    def stop_container(self, container_id: str):
+        """
+        Stop a container.
+
+        This method stops a container using the client obtained from the `get_client` method.
+
+        Returns:
+            list: A list of container objects.
+        """
+        with self.get_client() as client:
+            return client.containers.get(container_id).stop()
+
+    def rm_container(self, container_id: str):
+        """
+        Remove a container.
+
+        This method removes a container using the client obtained from the `get_client` method.
+
+        Returns:
+            list: A list of container objects.
+        """
+        with self.get_client() as client:
+            return client.containers.get(container_id).remove()
