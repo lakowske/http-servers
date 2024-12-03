@@ -3,7 +3,6 @@ This module provides a services for testing and application use.
 """
 
 from dependency_injector import containers, providers
-from configuration.config_loader import load_configs
 from configuration.tree_nodes import AdminContext
 from configuration.app import PodmanConfig, Config
 from configuration.app import ImapConfig
@@ -12,18 +11,6 @@ from services.podman_service import PodmanService
 from services.config_service import ConfigService
 from mail.imap import ImapService
 from mail.smtp import SmtpService
-
-
-def create_podman_config(config) -> PodmanConfig:
-    """
-    Creates a PodmanConfig object from a configuration dictionary.
-    """
-    return PodmanConfig(
-        socket_url=config["podman"].get("socket_url", None),
-        timeout=config["podman"].get("timeout", 30),
-        tls_verify=config["podman"].get("tls_verify", True),
-        cert_path=config["podman"].get("cert_path", None),
-    )
 
 
 def create_imap_service(config_service: ConfigService) -> ImapService:

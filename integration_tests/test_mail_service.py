@@ -9,11 +9,11 @@ from configuration.container import ServerContainer
 from mail.smtp import Email
 
 
-TEST_ADDRESS = "lakowske@protonmail.com"
-SECRETS_FILE = "secrets.yaml"
+SECRETS_FILE = "secrets/config.yaml"
 container = ServerContainer()
 config_service = container.config_service()
 config_service.load_yaml_config(SECRETS_FILE)
+TEST_ADDRESS = config_service.config.admin_context.email
 
 
 def test_imap_search():
