@@ -57,6 +57,8 @@ class FSTree(BaseModel):
         if self.parent:
             parent_node: FSTree = self.parent
             abs_path = parent_node.tree_root_path(build_root) + f"/{apath}"
+        elif build_root == "":
+            abs_path = apath
         else:
             abs_path = f"{build_root}/{apath}"
         return abs_path
@@ -245,9 +247,18 @@ secrets = FSTree(
     ],
 )
 
+certbot = FSTree(
+    name="certbot",
+    children=[
+        FSTree(name="config"),
+        FSTree(name="work"),
+        FSTree(name="logs"),
+    ],
+)
+
 build = FSTree(
     name="build",
-    children=[apache, webroot, secrets, FSTree(name="letsencrypt"), FSTree(name="cgi")],
+    children=[apache, webroot, secrets, certbot, FSTree(name="cgi")],
 )
 
 

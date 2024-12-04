@@ -4,6 +4,7 @@ This module provides a service for interacting with Podman containers.
 
 from typing import List, Tuple
 import podman
+from podman.domain.containers import Container
 from configuration.app import PodmanConfig
 
 
@@ -86,7 +87,7 @@ class PodmanService:
         mounts: List,
         environment: dict,
         detach: bool = True,
-    ):
+    ) -> Container:
         """
         Run a container.
 
@@ -143,3 +144,15 @@ class PodmanService:
         """
         with self.get_client() as client:
             return client.containers.get(container_id).remove()
+
+    def is_container_running(self, container_id: str):
+        """
+        Check if a container is running.
+
+        This method checks if a container is running using the client obtained from the `get_client` method.
+
+        Returns:
+            bool: True if the container is running, False otherwise.
+        """
+        with self.get_client() as client:
+            return client.containers.get(container_id).status == "running"

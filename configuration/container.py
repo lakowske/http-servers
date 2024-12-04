@@ -9,6 +9,8 @@ from configuration.app import ImapConfig
 from configuration.app import SmtpConfig
 from services.podman_service import PodmanService
 from services.config_service import ConfigService
+from services.httpd_service import HttpdService
+from services.certbot_service import CertbotService
 from mail.imap import ImapService
 from mail.smtp import SmtpService
 
@@ -76,3 +78,9 @@ class ServerContainer(containers.DeclarativeContainer):
     imap_service = providers.Singleton(ImapService, imap_config=imap_config)
 
     smtp_service = providers.Singleton(SmtpService, smtp_config=smtp_config)
+
+    httpd_service = providers.Singleton(
+        HttpdService, podman_service=podman_service, config_service=config_service
+    )
+
+    certbot_service = providers.Singleton(CertbotService, config_service=config_service)
