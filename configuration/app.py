@@ -6,8 +6,7 @@ import os
 from typing import Optional
 from pydantic import BaseModel, Field
 
-
-from configuration.tree_nodes import FSTree, AdminContext, container_paths, build
+from configuration.tree_nodes import FSTree, AdminContext, container_paths, build_tree
 
 # Create an absolute workspace directory variable
 MODULE = os.path.dirname(os.path.abspath(__file__))
@@ -37,8 +36,16 @@ class PodmanConfig(BaseModel):
     )
 
 
+class Runtime(BaseModel):
+    """Runtime is a configuration class for the server runtime"""
+
+    withinContainer: bool = (
+        False  # Whether the app is running within the httpd container, or on the host
+    )
+
+
 class BuildContext(BaseModel):
-    """BuildContext is a configuration class for the build process"""
+    """BuildContext is a configuration for the artifact build process"""
 
     build_root: str = "."
     template_root: str = "templates"
@@ -66,15 +73,16 @@ class SmtpConfig(BaseModel):
 class Config(BaseModel):
     """Main server configuration"""
 
-    admin_context: AdminContext
+    admin: AdminContext
+    runtime: Runtime = Runtime()
     imap: ImapConfig = ImapConfig()
     smtp: SmtpConfig = SmtpConfig()
-    build_context: BuildContext = BuildContext()
-    container: FSTree = container_paths
-    build_paths: FSTree = build
+    build: BuildContext = BuildContext()
+    container_paths: FSTree = container_paths
+    build_paths: FSTree = build_tree
     podman: PodmanConfig = PodmanConfig()
 
     def to_kwargs(self) -> dict:
         """Convert the configuration to a dictionary"""
-        kwargs = {**self.admin_context.model_dump(), **self.build_context.model_dump()}
+        kwargs = {**self.admin.model_dump(), **self.build.model_dump()}
         return kwargs

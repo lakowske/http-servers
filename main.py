@@ -46,7 +46,7 @@ app = FastAPI(title="Configurable API")
 
 # Global configuration instance
 api_config = Config(
-    admin_context=AdminContext(
+    admin=AdminContext(
         domain="example.com",
         email="admin@example.com",
     )

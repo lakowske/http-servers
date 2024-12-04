@@ -72,7 +72,7 @@ class HttpdService:
                     "read_only": False,
                 },
                 {
-                    "target": "/usr/local/apache2/letsencrypt",
+                    "target": "/usr/local/apache2/conf/letsencrypt",
                     "source": self.letsencrypt_path,
                     "type": "bind",
                     "read_only": False,

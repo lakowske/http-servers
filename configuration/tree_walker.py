@@ -2,7 +2,7 @@
 Tree walking functions for dealing with configuration trees.
 """
 
-from pydantic import BaseModel
+from configuration.app import Config
 from configuration.tree_nodes import (
     FSTree,
     TemplateTree,
@@ -17,7 +17,7 @@ class TreeWalker:
     the type specific methods to handle different types of nodes, and/or specify
     a default method to handle nodes that aren't specifically defined."""
 
-    def walk(self, node: FSTree, context: BaseModel):
+    def walk(self, node: FSTree, context: Config):
         """Walk through the tree and process the nodes"""
         results = []
 
@@ -30,7 +30,7 @@ class TreeWalker:
 
         return results
 
-    def depth_first(self, node: FSTree, context: BaseModel):
+    def depth_first(self, node: FSTree, context: Config):
         """Walk through the tree and process the nodes"""
         results = []
 
@@ -43,7 +43,7 @@ class TreeWalker:
 
         return results
 
-    def process_node(self, node: FSTree, context: BaseModel):
+    def process_node(self, node: FSTree, context: Config):
         """Process a node based on its type"""
         if isinstance(node, TemplateTree):
             return self.call_method("on_template_tree", node, context)
@@ -58,20 +58,20 @@ class TreeWalker:
         else:
             raise ValueError(f"Unknown node type: {node}")
 
-    def call_method(self, method_name: str, node: FSTree, context: BaseModel):
+    def call_method(self, method_name: str, node: FSTree, context: Config):
         """Call a method if it exists, otherwise call a default method"""
         default_method = getattr(self, "default", self.default)
         method = getattr(self, method_name, default_method)
         return method(node, context)
 
-    def default(self, node: FSTree, context: BaseModel):
+    def default(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
         return node
 
 
 class TreeSimplePrinter(TreeWalker):
 
-    def default(self, node: FSTree, context: BaseModel):
+    def default(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
         print(f"FSTree: {node.name}")
         print(f"Path: {node.path}")
@@ -81,33 +81,33 @@ class TreeSimplePrinter(TreeWalker):
 
 class TreePrinter(TreeWalker):
 
-    def on_fs_tree(self, node: FSTree, context: BaseModel):
+    def on_fs_tree(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
         print(f"FSTree: {node.name}")
         print(f"Path: {node.path}")
         print(f"IsDir: {node.isDir}")
         return node
 
-    def on_template_tree(self, node: TemplateTree, context: BaseModel):
+    def on_template_tree(self, node: TemplateTree, context: Config):
         """Handle a TemplateTree node"""
         print(f"TemplateTree: {node.template_path}")
         print(f"Name: {node.name}")
         print(f"Path: {node.path}")
         return node
 
-    def on_htpasswd(self, node: Htpasswd, context: BaseModel):
+    def on_htpasswd(self, node: Htpasswd, context: Config):
         """Handle an Htpasswd node"""
         print(f"Htpasswd: {node.name}")
         print(f"Path: {node.path}")
         return node
 
-    def on_passwd(self, node: Passwd, context: BaseModel):
+    def on_passwd(self, node: Passwd, context: Config):
         """Handle an Passwd node"""
         print(f"Passwd: {node.name}")
         print(f"Path: {node.path}")
         return node
 
-    def on_self_signed_certs(self, node: SelfSignedCerts, context: BaseModel):
+    def on_self_signed_certs(self, node: SelfSignedCerts, context: Config):
         """Handle an SelfSignedCerts node"""
         print(f"SelfSignedCerts: {node.name}")
         print(f"Path: {node.path}")
@@ -117,50 +117,46 @@ class TreePrinter(TreeWalker):
 class TreeRenderer(TreeWalker):
     """A class to render FSTree nodes to the filesystem"""
 
-    def on_fs_tree(self, node: FSTree, context: BaseModel):
+    def on_fs_tree(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
-        return node.make_path(context.build_context.build_root)
+        return node.make_path(context.build.build_root)
 
-    def on_template_tree(self, node: TemplateTree, context: BaseModel):
+    def on_template_tree(self, node: TemplateTree, context: Config):
         """Handle a TemplateTree node"""
         return node.render(
             **context.to_kwargs(),
         )
 
-    def on_htpasswd(self, node: Htpasswd, context: BaseModel):
-        return node.render(
-            context.build_context.build_root, users=context.admin_context.users
-        )
+    def on_htpasswd(self, node: Htpasswd, context: Config):
+        return node.render(context.build.build_root, users=context.admin.users)
 
     on_passwd = on_htpasswd
 
-    def on_self_signed_certs(self, node: SelfSignedCerts, context: BaseModel):
-        return node.render(
-            context.build_context.build_root, admin_context=context.admin_context
-        )
+    def on_self_signed_certs(self, node: SelfSignedCerts, context: Config):
+        return node.render(context.build.build_root, admin=context.admin)
 
 
 class TreeRemoval(TreeWalker):
     """A class to remove FSTree nodes from the filesystem"""
 
-    def default(self, node: FSTree, context: BaseModel):
+    def default(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
-        return node.rm_path(context.build_context.build_root)
+        return node.rm_path(context.build.build_root)
 
 
-def print_tree(node: FSTree, context: BaseModel):
+def print_tree(node: FSTree, context: Config):
     """Print the tree"""
     walker = TreeWalker()
-    walker.walk(node, BaseModel())
+    walker.walk(node, Config())
 
 
-def render_tree(node: FSTree, context: BaseModel):
+def render_tree(node: FSTree, context: Config):
     """Render the tree to the filesystem"""
     walker = TreeRenderer()
     walker.walk(node, context)
 
 
-def remove_tree(node: FSTree, context: BaseModel):
+def remove_tree(node: FSTree, context: Config):
     """Remove the tree from the filesystem"""
     walker = TreeRemoval()
     walker.walk(node, context)

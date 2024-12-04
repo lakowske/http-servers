@@ -16,18 +16,18 @@ def test_partial_config_updates():
     test_scenarios = [
         # 1. Update top-level configuration
         {
-            "update": {"admin_context": {"domain": "updated.example.com"}},
-            "verify": {"admin_context": {"domain": "updated.example.com"}},
+            "update": {"admin": {"domain": "updated.example.com"}},
+            "verify": {"admin": {"domain": "updated.example.com"}},
         },
         # 2. Update nested host configuration
         {
             "update": {
-                "container": {
+                "container_paths": {
                     "name": "test-container",
                 }
             },
             "verify": {
-                "container": {
+                "container_paths": {
                     "name": "test-container",
                 }
             },
@@ -47,8 +47,8 @@ def test_partial_config_updates():
         },
         # 4. Update multiple nested configurations
         {
-            "update": {"admin_context": {"email": "new-admin@example.com"}},
-            "verify": {"admin_context": {"email": "new-admin@example.com"}},
+            "update": {"admin": {"email": "new-admin@example.com"}},
+            "verify": {"admin": {"email": "new-admin@example.com"}},
         },
     ]
 

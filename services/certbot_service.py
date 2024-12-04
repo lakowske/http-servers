@@ -25,8 +25,9 @@ class CertbotService:
             WORKSPACE
         )
         self.certbot_config_path = (
-            self.config.build_paths.get("certbot")
-            .get("config")
+            self.config.build_paths.get("apache")
+            .get("conf")
+            .get("letsencrypt")
             .tree_root_path(WORKSPACE)
         )
         self.certbot_work_path = (
@@ -35,13 +36,22 @@ class CertbotService:
         self.certbot_logs_path = (
             self.config.build_paths.get("certbot").get("logs").tree_root_path(WORKSPACE)
         )
-        self.certbot_ssl_config_path = (
-            self.config.container.get("conf")
-            .get("extra")
-            .get("httpd-ssl.conf")
-            .tree_root_path("")
-        )
-        self.email = self.config.admin_context.email
+        if self.config.runtime.withinContainer:
+            self.certbot_ssl_config_path = (
+                self.config.container_paths.get("conf")
+                .get("extra")
+                .get("httpd-ssl.conf")
+                .tree_root_path("")
+            )
+        else:
+            self.certbot_ssl_config_path = (
+                self.config.build_paths.get("apache")
+                .get("conf")
+                .get("extra")
+                .get("httpd-ssl.conf")
+                .tree_root_path(WORKSPACE)
+            )
+        self.email = self.config.admin.email
 
     def create_certificate(
         self, domain: str, staging: bool = True, dry_run: bool = True

@@ -50,7 +50,7 @@ def test_http_healthcheck():
     """
     Test that the podman service can perform an http healthcheck on a container.
     """
-    domain = config_service.config.admin_context.domain
+    domain = config_service.config.admin.domain
     assert healthcheck(domain)
 
 

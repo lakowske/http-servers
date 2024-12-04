@@ -3,13 +3,13 @@ This module contains the abstract nodes for the build process.
 """
 
 import os
+import shutil
 import copy
 from typing import List, Optional
 from jinja2 import Environment, FileSystemLoader
+from pydantic import BaseModel, Field
 from auth.auth import UserCredential, to_htpasswd_file, to_passwd_file
 from auth.certificates import generate_self_signed_cert
-from pydantic import BaseModel, Field
-from auth.auth import UserCredential
 from auth.password import random_password
 
 
@@ -86,7 +86,7 @@ class FSTree(BaseModel):
         abs_path = self.tree_root_path(build_root)
         if os.path.exists(abs_path):
             if self.isDir:
-                os.rmdir(abs_path)
+                shutil.rmtree(abs_path)
             else:
                 os.remove(abs_path)
         return abs_path
@@ -152,16 +152,16 @@ class SelfSignedCerts(FSTree):
     ):
         super().__init__(children=children, **data)
 
-    def render(self, build_root: str, admin_context: AdminContext):
+    def render(self, build_root: str, admin: AdminContext):
         """Render a template to a file"""
         abs_path = self.make_path(build_root)
         generate_self_signed_cert(
-            admin_context.domain,
+            admin.domain,
             abs_path,
-            country=admin_context.country,
-            state=admin_context.state,
-            locality=admin_context.locality,
-            organization=admin_context.organization,
+            country=admin.country,
+            state=admin.state,
+            locality=admin.locality,
+            organization=admin.organization,
         )
         return abs_path
 
@@ -256,7 +256,7 @@ certbot = FSTree(
     ],
 )
 
-build = FSTree(
+build_tree = FSTree(
     name="build",
     children=[apache, webroot, secrets, certbot, FSTree(name="cgi")],
 )

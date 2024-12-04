@@ -49,7 +49,7 @@ def create_config_service() -> ConfigService:
     """
 
     config = Config(
-        admin_context=AdminContext(
+        admin=AdminContext(
             domain="example.com",
             email="admin@example.com",
         )

@@ -13,7 +13,7 @@ SECRETS_FILE = "secrets/config.yaml"
 container = ServerContainer()
 config_service = container.config_service()
 config_service.load_yaml_config(SECRETS_FILE)
-TEST_ADDRESS = config_service.config.admin_context.email
+TEST_ADDRESS = config_service.config.admin.email
 
 
 def test_imap_search():
