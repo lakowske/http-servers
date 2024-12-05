@@ -150,25 +150,34 @@ def certbot_ssl(
         certbot_main.main(args)
 
         # Update Apache configuration
-
-        with open(ssl_config_path, "r", encoding="utf-8") as f:
-            config = f.read()
-
-        # Replace certificate paths
-        config = config.replace(
-            'SSLCertificateFile "/usr/local/apache2/conf/ssl/server-cert.pem"',
-            f'SSLCertificateFile "/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/fullchain.pem"',
-        )
-        config = config.replace(
-            'SSLCertificateKeyFile "/usr/local/apache2/conf/ssl/server-key.pem"',
-            f'SSLCertificateKeyFile "/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/privkey.pem"',
-        )
-
-        with open(ssl_config_path, "w", encoding="utf-8") as f:
-            f.write(config)
+        update_apache_ssl_config_to_letsencrypt(ssl_config_path, domains)
 
         return True
 
     except (certbot_main.errors.Error, OSError, IOError) as e:
         logger.error("Failed to obtain certificate: %s", str(e))
         return False
+
+
+def update_apache_ssl_config_to_letsencrypt(ssl_config_path: str, domains: list[str]):
+    """
+    Update the Apache configuration to use the new certificate.
+    """
+
+    with open(ssl_config_path, "r", encoding="utf-8") as f:
+        config = f.read()
+
+    # Replace certificate paths
+    config = config.replace(
+        'SSLCertificateFile "/usr/local/apache2/conf/ssl/server-cert.pem"',
+        f'SSLCertificateFile "/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/fullchain.pem"',
+    )
+    config = config.replace(
+        'SSLCertificateKeyFile "/usr/local/apache2/conf/ssl/server-key.pem"',
+        f'SSLCertificateKeyFile "/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/privkey.pem"',
+    )
+
+    with open(ssl_config_path, "w", encoding="utf-8") as f:
+        f.write(config)
+
+    return True

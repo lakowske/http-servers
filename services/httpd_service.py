@@ -38,6 +38,13 @@ class HttpdService:
             .get("letsencrypt")
             .tree_root_path(WORKSPACE)
         )
+        self.git_auth_path = (
+            config_service.config.build_paths.get("apache")
+            .get("conf")
+            .get("git-auth")
+            .tree_root_path(WORKSPACE)
+        )
+
         self.apache_path = config_service.config.build_paths.get(
             "apache"
         ).tree_root_path(WORKSPACE)
@@ -86,6 +93,12 @@ class HttpdService:
                 {
                     "target": "/usr/local/apache2/conf/extra/httpd-ssl.conf",
                     "source": self.ssl_config_path,
+                    "type": "bind",
+                    "read_only": False,
+                },
+                {
+                    "target": "/usr/local/apache2/conf/git-auth",
+                    "source": self.git_auth_path,
                     "type": "bind",
                     "read_only": False,
                 },

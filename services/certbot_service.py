@@ -6,7 +6,7 @@ the user does not have to manage configuration or run certbot commands directly.
 import logging
 
 from configuration.app import WORKSPACE
-from auth.certificates import certbot_ssl
+from auth.certificates import certbot_ssl, update_apache_ssl_config_to_letsencrypt
 from services.config_service import ConfigService
 
 logging.basicConfig(level=logging.INFO)
@@ -72,4 +72,13 @@ class CertbotService:
             dry_run=dry_run,
         )
         logger.info("Certificate created for domain: %s", domain)
+        return True
+
+    def update_apache_configs_to_letsencrypt(self, domain: str) -> None:
+        """
+        Update the Apache configuration to use the new certificate.
+        """
+        logger.info("Updating Apache configuration for domain: %s", domain)
+        update_apache_ssl_config_to_letsencrypt(self.certbot_ssl_config_path, [domain])
+        logger.info("Apache configuration updated for domain: %s", domain)
         return True

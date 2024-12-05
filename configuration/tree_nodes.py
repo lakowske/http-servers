@@ -166,7 +166,7 @@ class SelfSignedCerts(FSTree):
         return abs_path
 
 
-htpasswd = Htpasswd(name="htpasswd")
+git_auth = Htpasswd(name="git-auth")
 passwd = Passwd(name="passwd")
 ssl = SelfSignedCerts(
     name="ssl",
@@ -219,7 +219,7 @@ apache_conf = FSTree(
         FSTree(name="htpasswd", isDir=False),
         FSTree(name="passwd", isDir=False),
         httpd_conf_template,
-        htpasswd,
+        git_auth,
     ],
 )
 

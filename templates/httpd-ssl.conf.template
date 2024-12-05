@@ -287,4 +287,22 @@ BrowserMatch "MSIE [2-5]" \
 CustomLog /proc/self/fd/1 \
           "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
 
+# Add git serving
+ScriptAlias /git/ /usr/lib/git-core/git-http-backend/
+<Directory "/usr/lib/git-core">
+    Options +ExecCGI
+    Require all granted
+</Directory>
+
+SetEnv GIT_PROJECT_ROOT /usr/local/apache2/git
+SetEnv GIT_HTTP_EXPORT_ALL
+SetEnv REMOTE_USER=$REDIRECT_REMOTE_USER
+
+<Location /git>
+    AuthType Basic
+    AuthName "Git Access"
+    Require valid-user
+    AuthUserFile /usr/local/apache2/conf/git-auth
+</Location>
+
 </VirtualHost>                                  

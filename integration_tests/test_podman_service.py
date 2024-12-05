@@ -24,6 +24,19 @@ def test_podman_list_containers():
     assert len(containers) >= 0
 
 
+def test_render_with_secrets_config():
+    """
+    Test that the config service can render the configuration with secrets.
+    """
+    walker = TreeRenderer()
+    walker.walk(config_service.config.build_paths, config_service.config)
+    assert config_service.config.admin.domain is not None
+    assert config_service.config.admin.email is not None
+    assert config_service.config.build_paths is not None
+    assert config_service.config.container_paths is not None
+    assert config_service.config.runtime is not None
+
+
 def test_httpd_service_build_image():
     """
     Test that the httpd service can build an image.

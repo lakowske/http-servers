@@ -19,3 +19,14 @@ def test_certbot():
         config_service.config.admin.domain, dry_run=False, staging=False
     )
     assert success is True
+
+
+def test_update_apache_configs_to_letsencrypt():
+    """
+    Test that the certbot service can update Apache configurations to use the new certificate.
+    """
+    certbot = container.certbot_service()
+    success = certbot.update_apache_configs_to_letsencrypt(
+        config_service.config.admin.domain
+    )
+    assert success
