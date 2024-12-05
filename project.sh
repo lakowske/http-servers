@@ -28,6 +28,12 @@ install() {
     pip install -r requirements.txt
 }
 
+## Activate the virtual environment
+# source project.sh activate
+activate() {
+    source $VENV/bin/activate
+}
+
 # Test the project function
 # project.sh test - runs the tests
 test() {
@@ -45,12 +51,12 @@ run() {
     source $VENV/bin/activate
 
     # Run the project
-    uvicorn app.main:app --reload
+    uvicorn main:app --reload
 }
 
 ## Help displays the help message
 help() {
-    echo "Usage: project.sh [install|test|run|help]"
+    echo "Usage: project.sh [install|activate|test|run|help]"
     echo "install - creates a virtual environment and installs dependencies"
     echo "test - runs the tests"
     echo "run - runs the project"
@@ -75,15 +81,25 @@ if [ -z "$1" ]; then
 fi
 
 # Check the argument provided by the user
-if [ "$1" == "install" ]; then
-    install
-elif [ "$1" == "test" ]; then
-    test
-elif [ "$1" == "run" ]; then
-    run
-elif [ "$1" == "help" ]; then
-    help
-else
-    echo "Invalid argument"
-    exit 1
-fi
+case "$1" in
+    install)
+        install
+        ;;
+    activate)
+        activate
+        ;;
+    test)
+        test
+        ;;
+    run)
+        run
+        ;;
+    help)
+        help
+        ;;
+    *)
+        echo "Invalid argument: $1"
+        help
+        exit 1
+        ;;
+esac
