@@ -7,6 +7,8 @@ from services.config_service import ConfigService
 from services.podman_service import PodmanService
 from configuration.app import WORKSPACE
 
+LATEST_IMAGE = "httpd-nexus:latest"
+
 
 class HttpdService:
     """
@@ -36,6 +38,11 @@ class HttpdService:
             config_service.config.build_paths.get("apache")
             .get("conf")
             .get("letsencrypt")
+            .tree_root_path(WORKSPACE)
+        )
+        self.scripts_path = (
+            config_service.config.build_paths.get("apache")
+            .get("scripts")
             .tree_root_path(WORKSPACE)
         )
         self.git_auth_path = (
@@ -85,6 +92,12 @@ class HttpdService:
                     "read_only": False,
                 },
                 {
+                    "target": "/usr/local/apache2/scripts",
+                    "source": self.scripts_path,
+                    "type": "bind",
+                    "read_only": False,
+                },
+                {
                     "target": "/usr/local/apache2/conf/httpd.conf",
                     "source": self.httpd_config_path,
                     "type": "bind",
@@ -106,6 +119,14 @@ class HttpdService:
             environment={},
         )
         return container_id
+
+    def reload_configuration(self, container_id: str):
+        """
+        Reload the configuration.
+
+        This method reloads the configuration of the container with the provided container_id.
+        """
+        self.podman_service.exec_container(container_id, "httpd -k graceful")
 
     def build_image(self, tag: str):
         """
@@ -147,7 +168,7 @@ class HttpdService:
 
         This method removes the image with the provided image.
         """
-        self.podman_service.remove_image(image)
+        return self.podman_service.rm_image(image)
 
     def get_container_id(self, name: str):
         """
@@ -156,3 +177,11 @@ class HttpdService:
         This method returns the container id of the container with the provided name.
         """
         return self.podman_service.get_container_id(name)
+
+    def get_image_id(self, image: str):
+        """
+        Get the image id.
+
+        This method returns the image id of the image with the provided name.
+        """
+        return self.podman_service.get_image_id(image)

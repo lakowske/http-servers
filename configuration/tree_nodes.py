@@ -111,6 +111,11 @@ class TemplateTree(FSTree):
         rendered_content = template.render(**kwargs)
         with open(abs_path, "w") as file:
             file.write(rendered_content)
+
+        # Replicate file permissions from the template
+        template_stat = os.stat(template_path)
+        os.chmod(abs_path, template_stat.st_mode)
+
         return abs_path
 
 
@@ -196,6 +201,11 @@ dockerfile_template = TemplateTree(
     template_path="Dockerfile.httpd.template",
 )
 
+reload_apache = TemplateTree(
+    name="reload-apache.sh",
+    template_path="reload-apache.sh",
+)
+
 html_template = TemplateTree(
     name="index.html",
     template_path="index.html.template",
@@ -223,10 +233,16 @@ apache_conf = FSTree(
     ],
 )
 
+scripts = FSTree(
+    name="scripts",
+    children=[],
+)
+
 apache = FSTree(
     name="apache",
     children=[
         apache_conf,
+        scripts,
         FSTree(name="cgi-bin"),
         FSTree(name="git"),
         dockerfile_template,
