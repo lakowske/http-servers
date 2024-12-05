@@ -1,4 +1,5 @@
-# Project Title
+# Http Server
+![Build Status](https://github.com/lakowske/http-servers/actions/workflows/python-app.yml/badge.svg)
 
 ## Outline
 
