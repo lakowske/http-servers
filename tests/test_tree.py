@@ -7,7 +7,6 @@ from configuration.app import WORKSPACE
 
 
 def test_build_tree():
-    build_tree = build_tree
     # Test default values
     assert build_tree.name == "build"
     # Test children
