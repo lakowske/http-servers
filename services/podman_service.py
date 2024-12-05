@@ -79,6 +79,20 @@ class PodmanService:
         with self.get_client() as client:
             return client.images.build(path=path, dockerfile=dockerfile, tag=tag)
 
+    def rm_image(self, image_id: str):
+        """
+        Remove an image if it exists.
+
+        This method removes an image using the client obtained from the `get_client` method.
+
+        Returns:
+            list: A list of image objects.
+        """
+        if self.get_image_id(image_id) is None:
+            return None
+        with self.get_client() as client:
+            return client.images.remove(image_id)
+
     def run_container(
         self,
         image: str,
@@ -106,6 +120,18 @@ class PodmanService:
                 detach=detach,
             )
 
+    def exec_container(self, container_id: str, command: str):
+        """
+        Execute a command in a container.
+
+        This method executes a command in a container using the client obtained from the `get_client` method.
+
+        Returns:
+            list: A list of container objects.
+        """
+        with self.get_client() as client:
+            return client.containers.get(container_id).exec_run(cmd=command)
+
     def get_container_id(self, container_name: str):
         """
         Get the container ID.
@@ -119,6 +145,21 @@ class PodmanService:
             try:
                 return client.containers.get(container_name).id
             except podman.errors.NotFound:
+                return None
+
+    def get_image_id(self, image_name: str):
+        """
+        Get the image ID.
+
+        This method retrieves the image ID using the client obtained from the `get_client` method.
+
+        Returns:
+            str: The image ID.
+        """
+        with self.get_client() as client:
+            try:
+                return client.images.get(image_name).id
+            except podman.errors.exceptions.ImageNotFound:
                 return None
 
     def stop_container(self, container_id: str):
