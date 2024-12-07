@@ -28,3 +28,7 @@ another test having been run.
 
 Improve test coverage by reducing the reliance of external services to exercise
 the code paths.
+
+## Self hosting
+
+The project can live in its own git repo served over http.
