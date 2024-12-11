@@ -14,6 +14,7 @@ from actions.build import (
     rm_image,
 )
 
+
 container = ServerContainer()
 podman_service = container.podman_service()
 config_service = container.config_service()
@@ -55,6 +56,16 @@ def test_httpd_service_reload_configuration():
     Test that the httpd service can reload the configuration of a container.
     """
     reload_httpd()
+
+
+def test_httpd_service_reload_configuration():
+    """
+    Test that the httpd service can reload the configuration of a container.
+    """
+    container_id = httpd_service.get_container_id("httpd-nexus")
+    assert container_id is not None
+    httpd_service.reload_configuration(container_id)
+    assert httpd_service.is_container_running(container_id)
 
 
 def test_http_healthcheck():
