@@ -31,7 +31,7 @@ def list_containers():
     """
     containers = podman_service.list_containers()
     for podman_container in containers:
-        print(f"{podman_container.name} {podman_container.attrs["State"]}")
+        print(f'{podman_container.name} {podman_container.attrs["State"]}')
     return containers
 
 
