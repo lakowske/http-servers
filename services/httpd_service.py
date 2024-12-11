@@ -8,6 +8,7 @@ from services.podman_service import PodmanService
 from configuration.app import WORKSPACE
 
 LATEST_IMAGE = "httpd-nexus:latest"
+DEFAULT_CONTAINER_NAME = "httpd-nexus"
 
 
 class HttpdService:
