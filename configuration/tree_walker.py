@@ -142,21 +142,3 @@ class TreeRemoval(TreeWalker):
     def default(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
         return node.rm_path(context.build.build_root)
-
-
-def print_tree(node: FSTree, context: Config):
-    """Print the tree"""
-    walker = TreeWalker()
-    walker.walk(node, Config())
-
-
-def render_tree(node: FSTree, context: Config):
-    """Render the tree to the filesystem"""
-    walker = TreeRenderer()
-    walker.walk(node, context)
-
-
-def remove_tree(node: FSTree, context: Config):
-    """Remove the tree from the filesystem"""
-    walker = TreeRemoval()
-    walker.walk(node, context)
