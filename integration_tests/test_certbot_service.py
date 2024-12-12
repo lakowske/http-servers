@@ -16,7 +16,7 @@ def test_certbot():
     """
     certbot = container.certbot_service()
     success = certbot.create_certificate(
-        config_service.config.admin.domain, dry_run=False, staging=False
+        config_service.config.admin.domain, dry_run=False, staging=True
     )
     assert success is True
 
