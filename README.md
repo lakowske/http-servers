@@ -1,4 +1,5 @@
 # Http Server
+
 ![Build Status](https://github.com/lakowske/http-servers/actions/workflows/python-app.yml/badge.svg)
 
 ## Outline
@@ -14,37 +15,90 @@
 
 ## Introduction
 
-The project is meant to act as an http entrypoint to projects that I'm running.  There's a persistent need to serve
-stateful services, preferably without incurring excessive costs or overreliance on external providers whose conditions, proprietary protocols and availability are outside my control.  The idea is to use off the shelf tools and protocols to minimize work and maintenance while maximizing my compatibility with common internet infrastructure.
+The project is meant to act as an http entrypoint to projects that I'm running.
+There's a persistent need to serve stateful services, preferably without
+incurring excessive costs or overreliance on external providers whose
+conditions, proprietary protocols and availability are outside my control. The
+idea is to use off the shelf tools and protocols to minimize work and
+maintenance while maximizing my compatibility with common internet
+infrastructure.
 
 ## Purpose
 
-The purpose is to allow secure access controlled access to services over https.  There is a need for private Git
-access over https.  There is also a need to route traffic to backing services using
-https while reducing the IP/DNS space required, keeping server cost and complexity to a minimum.
-There is a need to manage users and access to Git and reverse proxied services.  This should be accomplished without reliance on extraneous external service providers.
+The purpose is to allow secure access controlled access to services over https.
+There is a need for private Git access over https. There is also a need to route
+traffic to backing services using https while reducing the IP/DNS space
+required, keeping server cost and complexity to a minimum. There is a need to
+manage users and access to Git and reverse proxied services. This should be
+accomplished without reliance on extraneous external service providers.
 
 ## Strategy
 
-Use a containerized web server to provide https, reverse proxy, cgi and other common modes (e.g. Apache or possibly Nginx).  Create
-configuration of the container using Python tooling and unit test using Python testing framework.
-Python comes with batteries included, so it works well for glueing together configuration, apis and the runtime tooling used in the project.  The workflow should allow for multiple branches to run on the same host to test new approaches while allowing existing services to continue to run without interruption.  The aspiration is toward blue green deployment of components of the system, to ease changes to services as they occur without disruption.  To aide in this, reverse proxy configuration should be able to be updated without restarting the reverse proxy and severing existing connections.
+Use a containerized web server to provide https, reverse proxy, cgi and other
+common modes (e.g. Apache or possibly Nginx). Create configuration of the
+container using Python tooling and unit test using Python testing framework.
+Python comes with batteries included, so it works well for glueing together
+configuration, apis and the runtime tooling used in the project. The workflow
+should allow for multiple branches to run on the same host to test new
+approaches while allowing existing services to continue to run without
+interruption. The aspiration is toward blue green deployment of components of
+the system, to ease changes to services as they occur without disruption. To
+aide in this, reverse proxy configuration should be able to be updated without
+restarting the reverse proxy and severing existing connections.
 
 ## Installation
 
-Provide step-by-step instructions on how to install and set up the project.
+Configure secrets/config.yaml with your domain and address. These will be needed
+for Let's Encrypt certificates to work properly.
+
+```yaml
+admin:
+  domain: "example.com"
+  email: "admin@example.com"
+```
+
+### Source project.sh
+
+Setup your python and shell environment by `source project.sh`
+
+### Build configuration
+
+You can build the container image and configuration dir `build` with:
+
+`python actions/build.py build`
+
+### Run podman container
+
+Start the container:
+
+`python actions/build.py run_container`
+
+### Get certificates
+
+Get certificates from Let's Encrypt:
+
+`python actions/build.py certificates`
+
+### Reload httpd configuration
+
+Reload SSL certificate configuration to use the new Let's Encrypt certificates.
+
+`python actions/build.py reload`
 
 ## Usage
 
-Explain how to use the project. Provide examples and code snippets if necessary.
+Once you've built the container and configured it, you can visit your domain's
+https endpoint to access documents and git repositories.
 
 ## Testing
 
-Describe how to run tests for the project. Include any setup or dependencies required for testing.
+Describe how to run tests for the project. Include any setup or dependencies
+required for testing.
 
 ## Contributing
 
-Provide guidelines for contributing to the project. This can include coding standards, pull request guidelines, and any other relevant information.
+Provide guidelines for contributing to the project. This can include coding
+standards, pull request guidelines, and any other relevant information.
 
 ## License
 
