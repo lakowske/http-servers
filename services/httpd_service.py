@@ -46,6 +46,11 @@ class HttpdService:
             .get("scripts")
             .tree_root_path(WORKSPACE)
         )
+        self.git_repos_path = (
+            config_service.config.build_paths.get("apache")
+            .get("git")
+            .tree_root_path(WORKSPACE)
+        )
         self.git_auth_path = (
             config_service.config.build_paths.get("apache")
             .get("conf")
@@ -69,7 +74,7 @@ class HttpdService:
         This method runs an httpd container using the client obtained from the `get_client` method.
         """
 
-        container_id = self.podman_service.run_container(
+        container = self.podman_service.run_container(
             image=image,
             name=name,
             ports={"80/tcp": 80, "443/tcp": 443},
@@ -99,6 +104,12 @@ class HttpdService:
                     "read_only": False,
                 },
                 {
+                    "target": "/usr/local/apache2/git",
+                    "source": self.git_repos_path,
+                    "type": "bind",
+                    "read_only": False,
+                },
+                {
                     "target": "/usr/local/apache2/conf/httpd.conf",
                     "source": self.httpd_config_path,
                     "type": "bind",
@@ -119,7 +130,9 @@ class HttpdService:
             ],
             environment={},
         )
-        return container_id
+        if container is not None:
+            self.update_mountpoint_ownership(container.id)
+        return container
 
     def reload_configuration(self, container_id: str):
         """
@@ -128,6 +141,30 @@ class HttpdService:
         This method reloads the configuration of the container with the provided container_id.
         """
         self.podman_service.exec_container(container_id, "httpd -k graceful")
+
+    def update_mountpoint_ownership(self, container_id: str):
+        """
+        Update the mountpoint ownership.
+
+        This method updates the ownership of the mountpoints of the container with the
+        provided container_id.
+        """
+        self.podman_service.exec_container(
+            container_id, "chown -R www-data:www-data /usr/local/apache2/htdocs"
+        )
+        self.podman_service.exec_container(
+            container_id, "chown -R www-data:www-data /usr/local/apache2/cgi-bin"
+        )
+        self.podman_service.exec_container(
+            container_id,
+            "chown -R www-data:www-data /usr/local/apache2/conf/letsencrypt",
+        )
+        self.podman_service.exec_container(
+            container_id, "chown -R www-data:www-data /usr/local/apache2/scripts"
+        )
+        self.podman_service.exec_container(
+            container_id, "chown -R www-data:www-data /usr/local/apache2/git"
+        )
 
     def build_image(self, tag: str):
         """

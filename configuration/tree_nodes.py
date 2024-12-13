@@ -146,6 +146,18 @@ class Passwd(FSTree):
         to_passwd_file(users, abs_path)
         return abs_path
 
+    def read(self, build_root: str) -> List[UserCredential]:
+        """Read a passwd file"""
+        abs_path = self.tree_root_path(build_root)
+        users = []
+        with open(abs_path, "r") as file:
+            for line in file:
+                if line.strip() == "":
+                    continue
+                username, password = line.strip().split(":")
+                users.append(UserCredential(username=username, password=password))
+        return users
+
 
 class SelfSignedCerts(FSTree):
     """A tree node that represents a self-signed certificate"""

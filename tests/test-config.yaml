@@ -10,4 +10,7 @@ imap:
   port: 993
   username: "test-user"
   password: "test-password"
+admin:
+  domain: "localhost"
+  email: "admin@localhost"
 test_value: 28
