@@ -17,7 +17,7 @@ reduce the cognitive load by placing all configuration in one place.
 
 Constants are provided for string values often referenced in the program. The
 principle is to relying on the IDE to help autocomplete common constants and
-ensure consistent usage of constants.
+ensure consistent constant values.
 
 ## Services
 
