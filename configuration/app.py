@@ -75,12 +75,12 @@ class Config(BaseModel):
 
     admin: AdminContext
     runtime: Runtime = Runtime()
+    podman: PodmanConfig = PodmanConfig()
     imap: ImapConfig = ImapConfig()
     smtp: SmtpConfig = SmtpConfig()
     build: BuildContext = BuildContext()
     container_paths: FSTree = container_paths
     build_paths: FSTree = build_tree
-    podman: PodmanConfig = PodmanConfig()
 
     def to_kwargs(self) -> dict:
         """Convert the configuration to a dictionary"""
