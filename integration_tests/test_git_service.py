@@ -8,7 +8,7 @@ from services.config_service import ConfigService
 
 container = ServerContainer()
 config_service: ConfigService = container.config_service()
-config_service.load_yaml_config("tests/test-config.yaml")
+config_service.load_yaml_config("secrets/config.yaml")
 
 TEST_REPO_NAME = "test_repo"
 
@@ -24,12 +24,12 @@ def test_create_bare_repo():
 
 def test_clone_repo():
     """
-    Test the ability to clone our test repository from the http server.
+    Test the ability to clone our test repository from the https server.
     """
     git_service = container.git_service()
     user_service = container.user_service()
     git_user = user_service.find_user("git")
     assert git_user is not None
-    repo_url = f"http://{git_user.username}:{git_user.password}@{config_service.config.admin.domain}/git/{TEST_REPO_NAME}"
+    repo_url = f"https://{git_user.username}:{git_user.password}@{config_service.config.admin.domain}/git/{TEST_REPO_NAME}"
     clone_repo_path = "./test_repo"
     git_service.clone_repo(clone_repo_path, repo_url)

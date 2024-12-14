@@ -14,7 +14,12 @@ import inspect
 import sys
 from configuration.tree_walker import TreeRenderer
 from configuration.container import ServerContainer
-from services.httpd_service import LATEST_IMAGE, DEFAULT_CONTAINER_NAME
+from services.httpd_service import (
+    LATEST_IMAGE,
+    DEFAULT_CONTAINER_NAME,
+    GIT_REPO_VOLUME,
+    GIT_TEST_REPO,
+)
 from http_server.health_check import healthcheck
 
 
@@ -97,6 +102,29 @@ def reload_httpd():
     assert container_id is not None
     httpd_service.reload_configuration(container_id)
     assert httpd_service.is_container_running(container_id)
+
+
+def create_git_repo_volume():
+    """
+    Create a git repo volume
+    """
+    httpd_service.create_git_repo_volume(GIT_REPO_VOLUME)
+
+
+def remove_git_repo_volume():
+    """
+    Remove the git repo volume
+    """
+    httpd_service.remove_git_repo_volume(GIT_REPO_VOLUME)
+
+
+def create_test_repo():
+    """
+    Create a test git repo
+    """
+    container_id = httpd_service.get_container_id(DEFAULT_CONTAINER_NAME)
+    assert container_id is not None
+    httpd_service.create_git_repo(container_id, GIT_TEST_REPO)
 
 
 def reload():

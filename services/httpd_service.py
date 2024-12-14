@@ -9,6 +9,8 @@ from configuration.app import WORKSPACE
 
 LATEST_IMAGE = "httpd-nexus:latest"
 DEFAULT_CONTAINER_NAME = "httpd-nexus"
+GIT_REPO_VOLUME = "git_repos"
+GIT_TEST_REPO = "test_repo"
 
 
 class HttpdService:
@@ -73,66 +75,58 @@ class HttpdService:
 
         This method runs an httpd container using the client obtained from the `get_client` method.
         """
-
-        container = self.podman_service.run_container(
-            image=image,
-            name=name,
-            ports={"80/tcp": 80, "443/tcp": 443},
-            mounts=[
-                {
-                    "target": "/usr/local/apache2/htdocs",
-                    "source": self.webroot_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-                {
-                    "target": "/usr/local/apache2/cgi-bin",
-                    "source": self.cgi_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-                {
-                    "target": "/usr/local/apache2/conf/letsencrypt",
-                    "source": self.letsencrypt_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-                {
-                    "target": "/usr/local/apache2/scripts",
-                    "source": self.scripts_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-                {
-                    "target": "/usr/local/apache2/git",
-                    "source": self.git_repos_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-                {
-                    "target": "/usr/local/apache2/conf/httpd.conf",
-                    "source": self.httpd_config_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-                {
-                    "target": "/usr/local/apache2/conf/extra/httpd-ssl.conf",
-                    "source": self.ssl_config_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-                {
-                    "target": "/usr/local/apache2/conf/git-auth",
-                    "source": self.git_auth_path,
-                    "type": "bind",
-                    "read_only": False,
-                },
-            ],
-            environment={},
-        )
-        if container is not None:
-            self.update_mountpoint_ownership(container.id)
-        return container
+        volumes = {"git_repos": {"bind": "/usr/local/apache2/git", "mode": "rw"}}
+        mounts = [
+            {
+                "target": "/usr/local/apache2/htdocs",
+                "source": self.webroot_path,
+                "type": "bind",
+                "read_only": True,
+            },
+            {
+                "target": "/usr/local/apache2/cgi-bin",
+                "source": self.cgi_path,
+                "type": "bind",
+                "read_only": True,
+            },
+            {
+                "target": "/usr/local/apache2/conf/letsencrypt",
+                "source": self.letsencrypt_path,
+                "type": "bind",
+                "read_only": True,
+            },
+            {
+                "target": "/usr/local/apache2/conf/httpd.conf",
+                "source": self.httpd_config_path,
+                "type": "bind",
+                "read_only": False,
+            },
+            {
+                "target": "/usr/local/apache2/conf/extra/httpd-ssl.conf",
+                "source": self.ssl_config_path,
+                "type": "bind",
+                "read_only": False,
+            },
+            {
+                "target": "/usr/local/apache2/conf/git-auth",
+                "source": self.git_auth_path,
+                "type": "bind",
+                "read_only": False,
+            },
+        ]
+        with self.podman_service.get_client() as client:
+            container = client.containers.run(
+                image,
+                name=name,
+                ports={"80/tcp": 80, "443/tcp": 443},
+                volumes=volumes,
+                detach=True,
+                mounts=mounts,
+                environment={},
+            )
+            if container is not None:
+                self.update_mountpoint_ownership(container.id)
+            return container
 
     def reload_configuration(self, container_id: str):
         """
@@ -150,20 +144,36 @@ class HttpdService:
         provided container_id.
         """
         self.podman_service.exec_container(
-            container_id, "chown -R www-data:www-data /usr/local/apache2/htdocs"
+            container_id, "chown -R www-data:www-data /usr/local/apache2/git"
         )
-        self.podman_service.exec_container(
-            container_id, "chown -R www-data:www-data /usr/local/apache2/cgi-bin"
-        )
+
+    def create_git_repo_volume(self, volume_name: str):
+        """
+        Create a git repo volume.
+
+        This method creates a git repo volume with the provided volume_name.
+        """
+        with self.podman_service.get_client() as client:
+            client.volumes.create(volume_name)
+
+    def remove_git_repo_volume(self, volume_name: str):
+        """
+        Remove a git repo volume.
+
+        This method removes a git repo volume with the provided volume_name.
+        """
+        with self.podman_service.get_client() as client:
+            client.volumes.get(volume_name).remove()
+
+    def create_git_repo(self, container_id: str, repo_name: str):
+        """
+        Create a git repo.
+
+        This method creates a git repo with the provided repo_name.
+        """
         self.podman_service.exec_container(
             container_id,
-            "chown -R www-data:www-data /usr/local/apache2/conf/letsencrypt",
-        )
-        self.podman_service.exec_container(
-            container_id, "chown -R www-data:www-data /usr/local/apache2/scripts"
-        )
-        self.podman_service.exec_container(
-            container_id, "chown -R www-data:www-data /usr/local/apache2/git"
+            f"git init --bare /usr/local/apache2/git/{repo_name}",
         )
 
     def build_image(self, tag: str):

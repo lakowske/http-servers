@@ -12,6 +12,9 @@ from actions.build import (
     reload_httpd,
     rm_container,
     rm_image,
+    create_git_repo_volume,
+    remove_git_repo_volume,
+    create_test_repo,
 )
 
 
@@ -44,6 +47,27 @@ def test_build_and_render_with_secrets_config():
     build()
 
 
+def test_git_repo_volume_creation():
+    """
+    Test that the podman service can create a git repo.
+    """
+    create_git_repo_volume()
+
+
+def test_git_repo_volume_removal():
+    """
+    Test that the podman service can remove a git repo.
+    """
+    remove_git_repo_volume()
+
+
+def test_create_test_repo():
+    """
+    Test that the podman service can create a test repo.
+    """
+    create_test_repo()
+
+
 def test_httpd_service_run_container():
     """
     Test that the httpd service can run a container.
@@ -56,16 +80,6 @@ def test_httpd_service_reload_configuration():
     Test that the httpd service can reload the configuration of a container.
     """
     reload_httpd()
-
-
-def test_httpd_service_reload_configuration():
-    """
-    Test that the httpd service can reload the configuration of a container.
-    """
-    container_id = httpd_service.get_container_id("httpd-nexus")
-    assert container_id is not None
-    httpd_service.reload_configuration(container_id)
-    assert httpd_service.is_container_running(container_id)
 
 
 def test_http_healthcheck():
