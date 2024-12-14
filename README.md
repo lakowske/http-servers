@@ -57,33 +57,24 @@ admin:
   email: "admin@example.com"
 ```
 
-### Source project.sh
+### Run
 
-Setup your python and shell environment by `source project.sh`
-
-### Build configuration
-
-You can build the container image and configuration dir `build` with:
-
-`python actions/build.py build`
-
-### Run podman container
-
-Start the container:
-
-`python actions/build.py run_container`
-
-### Get certificates
-
-Get certificates from Let's Encrypt:
-
-`python actions/build.py certificates`
-
-### Reload httpd configuration
-
-Reload SSL certificate configuration to use the new Let's Encrypt certificates.
-
-`python actions/build.py reload`
+```bash
+# Setup your python and shell environment.  Creates an alias now=python actions/build.py
+source project.sh
+# Build the configuration build/ dir and container image
+now build
+# Create the git repo
+now create_git_repo_volume
+# Run the container, storing git repos in the git repo volume
+now run_container
+# Create the git test repo, if you want to do integration testing
+now create_test_repo
+# Create the let's encrypt certificates
+now certificates
+# Reload the httpd configuration to use the certificates
+now reload
+```
 
 ## Usage
 

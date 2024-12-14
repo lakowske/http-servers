@@ -30,6 +30,7 @@ def test_clone_repo():
     user_service = container.user_service()
     git_user = user_service.find_user("git")
     assert git_user is not None
-    repo_url = f"https://{git_user.username}:{git_user.password}@{config_service.config.admin.domain}/git/{TEST_REPO_NAME}"
+    addr = f"https://{git_user.username}:{git_user.password}@{config_service.config.admin.domain}"
+    repo_url = f"{addr}/git/{TEST_REPO_NAME}"
     clone_repo_path = "./test_repo"
     git_service.clone_repo(clone_repo_path, repo_url)

@@ -173,7 +173,8 @@ class HttpdService:
         """
         self.podman_service.exec_container(
             container_id,
-            f"git init --bare /usr/local/apache2/git/{repo_name}",
+            f"git init --bare /usr/local/apache2/git/{repo_name}"
+            + f" && chown -R www-data:www-data /usr/local/apache2/git/{repo_name}",
         )
 
     def build_image(self, tag: str):

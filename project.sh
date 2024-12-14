@@ -22,4 +22,7 @@ source .venv/bin/activate
 # Set the PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
+# Set an alias for running the build script
+alias now="python actions/build.py"
+
 echo "Environment setup complete."
