@@ -31,7 +31,7 @@ def random_password(length: int = 8) -> str:
     lowercase = "abcdefghijklmnopqrstuvwxyz"
     uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     numbers = "0123456789"
-    special = "!@#$%^&*_+-=|,"
+    special = "#$^*_-"
     chars = lowercase + uppercase + numbers + special
     return "".join(random.choices(chars, k=length))
 

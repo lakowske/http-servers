@@ -154,7 +154,7 @@ def certbot_ssl(
 
         return True
 
-    except (certbot_main.errors.Error, OSError, IOError) as e:
+    except Exception as e:
         logger.error("Failed to obtain certificate: %s", str(e))
         return False
 

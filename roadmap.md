@@ -2,6 +2,14 @@
 
 Below are some forward looking features to help improve usage.
 
+## Self hosting
+
+The project can live in its own git repo served over http.
+
+## Git hosting and test
+
+Store the git repos on the host and automate testing of git clone, commit, push
+
 ## User logs and action logs
 
 User logging is the typical logging that you'd expect, a message with different
@@ -28,7 +36,3 @@ another test having been run.
 
 Improve test coverage by reducing the reliance of external services to exercise
 the code paths.
-
-## Self hosting
-
-The project can live in its own git repo served over http.

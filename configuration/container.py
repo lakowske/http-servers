@@ -11,6 +11,8 @@ from services.podman_service import PodmanService
 from services.config_service import ConfigService
 from services.httpd_service import HttpdService
 from services.certbot_service import CertbotService
+from services.git_service import GitService
+from services.user_service import UserService
 from mail.imap import ImapService
 from mail.smtp import SmtpService
 
@@ -84,3 +86,7 @@ class ServerContainer(containers.DeclarativeContainer):
     )
 
     certbot_service = providers.Singleton(CertbotService, config_service=config_service)
+
+    git_service = providers.Singleton(GitService, config_service=config_service)
+
+    user_service = providers.Singleton(UserService, config_service=config_service)
