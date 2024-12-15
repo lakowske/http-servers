@@ -3,7 +3,13 @@ A simple FastAPI application that allows for the retrieval and updating of a con
 """
 
 import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
+from fastapi.websockets import (
+    WebSocketState,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from configuration.container import ServerContainer
 from configuration.app import Config
 from services.config_service import merge_config
@@ -12,15 +18,60 @@ from services.config_service import merge_config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+connected_websockets = set()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI, websockets: set = connected_websockets):
+    """
+    Context manager to handle the lifespan of the FastAPI application.
+    """
+    print("We starting up")
+    yield
+    print("Shutting down websockets")
+    for websocket in connected_websockets:
+        print("Attempting to close websocket %s" % str(websocket.client))
+        if not websocket.client_state.name != WebSocketState.DISCONNECTED:
+            await websocket.close()
+
 
 # FastAPI Application with Configuration
-app = FastAPI(title="Configurable API")
+app = FastAPI(
+    title="Configurable API",
+    description="API with configuration management",
+    version="0.1.0",
+    lifespan=lifespan,
+)
 
 # Global configuration instance
 container = ServerContainer()
 config_service = container.config_service()
 config_service.load_yaml_config("secrets/config.yaml")
 api_config = config_service.config
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for retrieving and updating configuration.
+    """
+    await websocket.accept()
+    connected_websockets.add(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Message text was: {data}")
+    except WebSocketDisconnect as e:
+        logger.info("Got a disconnect exception: %s", e)
+        return
+    except RuntimeError as e:
+        logger.error("Error processing websocket: %s", e)
+        connected_websockets.remove(websocket)
+        if not websocket.client_state != WebSocketState.DISCONNECTED:
+            try:
+                await websocket.close()
+            except RuntimeError as e:
+                logger.error("Error closing websocket: %s", e)
 
 
 @app.get("/config")
@@ -44,6 +95,6 @@ async def update_configuration(new_config: dict, config: Config = api_config):
     try:
         updated_config = merge_config(config, new_config)
         return {"status": "Configuration updated", "config": updated_config}
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         logger.error("Error updating configuration: %s", e)
         raise HTTPException(status_code=400, detail=str(e)) from e

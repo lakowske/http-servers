@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <script>
+        // Create WebSocket connection
+        const socket = new WebSocket('ws://localhost:8000/ws');
+
+        // Connection opened
+        socket.addEventListener('open', function (event) {
+            console.log('Connected to WebSocket');
+        });
+
+        // Listen for messages
+        socket.addEventListener('message', function (event) {
+            console.log('Message from server:', event.data);
+            // Handle any server messages here
+        });
+
+        // Connection closed - attempt to reload page
+        socket.addEventListener('close', function (event) {
+            console.log('Disconnected from WebSocket');
+            // Sleep for 1000ms before reloading the page
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        });
+    </script>
+</head>
+
+<body>
+    <header>
+        {% include 'web/components/nav.html' %}
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        {% include 'web/components/footer.html' %}
+    </footer>
+</body>
+
+</html>
