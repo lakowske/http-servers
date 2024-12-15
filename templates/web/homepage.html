@@ -1,0 +1,16 @@
+{% extends "web/base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<h1>Welcome</h1>
+
+{# Include other components #}
+{% include 'web/components/status.html' %}
+
+{# Direct content #}
+<div class="main-content">
+    <p>Main content here. We've got some cool going on!</p>
+
+</div>
+{% endblock %}
