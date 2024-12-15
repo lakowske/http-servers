@@ -1,5 +1,13 @@
+"""
+Test the ability to update configuration values in the API
+"""
+
 from fastapi.testclient import TestClient
-from main import app
+from configuration.container import ServerContainer
+
+# Get the FastAPI application
+container = ServerContainer()
+app = container.app_provider().get_app()
 
 client = TestClient(app)
 

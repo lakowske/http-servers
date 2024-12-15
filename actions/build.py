@@ -24,9 +24,9 @@ from http_server.health_check import healthcheck
 
 
 container = ServerContainer()
-podman_service = container.podman_service()
 config_service = container.config_service()
 config_service.load_yaml_config("secrets/config.yaml")
+podman_service = container.podman_service()
 httpd_service = container.httpd_service()
 
 
