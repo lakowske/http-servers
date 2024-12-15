@@ -3,14 +3,20 @@
 {% block title %}Homepage{% endblock %}
 
 {% block content %}
-<h1>Welcome</h1>
+<h1>Welcome to HTTP Operator</h1>
+
+
+{# Direct content #}
+<div class="main-content">
+    <H2>Actions</H2>
+    <ul>
+        {% for function in functions %}
+        <li><a href="/actions/{{ function }}">{{ function }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
 
 {# Include other components #}
 {% include 'web/components/status.html' %}
 
-{# Direct content #}
-<div class="main-content">
-    <p>Main content here. We've got some cool going on!</p>
-
-</div>
 {% endblock %}
