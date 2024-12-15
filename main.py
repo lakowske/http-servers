@@ -2,10 +2,11 @@
 FastAPI application with configuration management
 """
 
-from fastapi import WebSocket, Request
-
-from web.homepage import app
+from fastapi import Request
 from fastapi.templating import Jinja2Templates
+from web.homepage import app
+from actions.build import list_functions
+
 
 # Initialize Jinja2 templates
 templates = Jinja2Templates(directory="templates")
@@ -16,7 +17,10 @@ async def index(request: Request):
     """
     Index page
     """
-    return templates.TemplateResponse("web/homepage.html", {"request": request})
+    functions = list_functions()
+    return templates.TemplateResponse(
+        "web/homepage.html", {"request": request, "functions": functions}
+    )
 
 
 if __name__ == "__main__":
