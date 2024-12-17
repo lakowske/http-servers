@@ -24,6 +24,9 @@ else
     echo "Virtual environment is already activated."
 fi
 
+# Install the dependencies
+pip install -r requirements.txt
+
 # Set the PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
