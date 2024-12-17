@@ -16,8 +16,13 @@ else
     create_venv
 fi
 
-# Source the activate script
-source .venv/bin/activate
+# Check if the virtual environment is activated
+if [ -z "$VIRTUAL_ENV" ]; then
+    echo "Activating virtual environment..."
+    source .venv/bin/activate
+else
+    echo "Virtual environment is already activated."
+fi
 
 # Set the PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:$(pwd)

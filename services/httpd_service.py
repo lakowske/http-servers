@@ -171,11 +171,12 @@ class HttpdService:
 
         This method creates a git repo with the provided repo_name.
         """
-        self.podman_service.exec_container(
-            container_id,
-            f"git init --bare /usr/local/apache2/git/{repo_name}"
-            + f" && chown -R www-data:www-data /usr/local/apache2/git/{repo_name}",
+        cmd = (
+            f'bash -c "git init --bare /usr/local/apache2/git/{repo_name}'
+            + f' && chown -R www-data:www-data /usr/local/apache2/git/{repo_name}"'
         )
+
+        return self.podman_service.exec_container(container_id, cmd)
 
     def build_image(self, tag: str):
         """

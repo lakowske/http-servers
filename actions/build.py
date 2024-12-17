@@ -12,6 +12,7 @@ Can do the following actions:
 import argparse
 import inspect
 import sys
+import uvicorn
 from configuration.tree_walker import TreeRenderer
 from configuration.container import ServerContainer
 from services.httpd_service import (
@@ -21,6 +22,7 @@ from services.httpd_service import (
     GIT_TEST_REPO,
 )
 from http_server.health_check import healthcheck
+from actions.shell import ipython_shell
 
 
 container = ServerContainer()
@@ -162,6 +164,27 @@ def rm_image():
     image = LATEST_IMAGE
     httpd_service.remove_image(image)
     assert httpd_service.get_image_id(image) is None
+
+
+def run_ops():
+    """
+    Run the operations http server.
+    """
+    uvicorn.run(
+        "web.home:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=True,
+        reload_dirs=["./templates", "./templates/web"],
+        reload_includes=["*.html"],
+    )
+
+
+def run_shell():
+    """
+    Run an IPython shell
+    """
+    ipython_shell()
 
 
 def list_functions():
