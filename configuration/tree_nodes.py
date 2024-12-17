@@ -195,22 +195,27 @@ ssl = SelfSignedCerts(
 
 httpd_conf_template = TemplateTree(
     name="httpd.conf",
-    template_path="httpd.conf.template",
+    template_path="httpd.conf",
 )
 
 httpd_ssl_template = TemplateTree(
     name="httpd-ssl.conf",
-    template_path="httpd-ssl.conf.template",
+    template_path="httpd-ssl.conf",
 )
 
 git_conf_template = TemplateTree(
     name="httpd-git.conf",
-    template_path="httpd-git.conf.template",
+    template_path="httpd-git.conf",
+)
+
+gitweb_conf_template = TemplateTree(
+    name="gitweb.conf",
+    template_path="gitweb.conf",
 )
 
 dockerfile_template = TemplateTree(
     name="Dockerfile",
-    template_path="Dockerfile.httpd.template",
+    template_path="Dockerfile.httpd",
 )
 
 reload_apache = TemplateTree(
@@ -220,7 +225,7 @@ reload_apache = TemplateTree(
 
 html_template = TemplateTree(
     name="index.html",
-    template_path="index.html.template",
+    template_path="index.html",
 )
 
 extra = FSTree(
@@ -228,6 +233,7 @@ extra = FSTree(
     children=[
         httpd_ssl_template,
         git_conf_template,
+        gitweb_conf_template,
     ],
 )
 
