@@ -6,7 +6,7 @@ from configuration.tree_walker import TreeWalker, TreeRenderer, TreeRemoval
 from configuration.tree_nodes import build_tree
 from configuration.app import Config, AdminContext
 
-TREE_SIZE = 29
+TREE_SIZE = 31
 
 
 def test_print_walker():
