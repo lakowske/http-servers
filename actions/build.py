@@ -200,18 +200,26 @@ def list_functions():
     return function_list
 
 
-def usage():
-    """
-    Print the usage of this script
-    """
-    print("Usage: python actions/build.py [action]")
-    print("Available actions:")
-    for action in list():
-        print(f"  {action}")
+class CustomHelpFormatter(argparse.HelpFormatter):
+    def add_usage(self, usage, actions, groups, prefix=None):
+        if prefix is None:
+            prefix = "Usage: "
+        return super().add_usage(usage, actions, groups, prefix)
+
+    def format_help(self):
+        help_text = super().format_help()
+        # Customize the actions list
+        actions_list = "\n".join(list_functions())
+        help_text = help_text.replace(
+            "{" + ",".join(list_functions()) + "}", actions_list
+        )
+        return help_text
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Manage build actions")
+    parser = argparse.ArgumentParser(
+        description="Manage build actions", formatter_class=CustomHelpFormatter
+    )
     parser.add_argument("action", choices=list_functions(), help="Action to perform")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
@@ -225,4 +233,4 @@ if __name__ == "__main__":
         locals()[args.action]()
     else:
         print(f"Invalid action: {args.action}")
-        usage()
+        parser.print_help()

@@ -263,6 +263,8 @@ apache = FSTree(
         scripts,
         FSTree(name="cgi-bin"),
         FSTree(name="git"),
+        FSTree(name="webdav"),
+        FSTree(name="webdav.lock"),
         dockerfile_template,
     ],
 )

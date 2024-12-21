@@ -19,8 +19,11 @@ RUN mkdir -p /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
 # Create directory for git repos
 RUN mkdir -p /usr/local/apache2/git && chown -R www-data:www-data /usr/local/apache2/git
 
-# Create a test git repository for verification
-# RUN git init --bare /usr/local/apache2/git/test.git && chown -R www-data:www-data /usr/local/apache2/git/test.git
+# Create directory for webdav
+RUN mkdir -p /usr/local/apache2/webdav && chown -R www-data:www-data /usr/local/apache2/webdav
+
+# Create directory for webdav.lock
+RUN mkdir -p /usr/local/apache2/webdav.lock && chown -R www-data:www-data /usr/local/apache2/webdav.lock
 
 # Create an empty htpasswd file for git
 RUN touch /usr/local/apache2/conf/git-auth && chown www-data:www-data /usr/local/apache2/conf/git-auth
