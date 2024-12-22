@@ -10,6 +10,7 @@ from configuration.app import WORKSPACE
 LATEST_IMAGE = "httpd-nexus:latest"
 DEFAULT_CONTAINER_NAME = "httpd-nexus"
 GIT_REPO_VOLUME = "git_repos"
+WEBDAV_VOLUME = "webdav"
 GIT_TEST_REPO = "test_repo"
 
 
@@ -75,7 +76,10 @@ class HttpdService:
 
         This method runs an httpd container using the client obtained from the `get_client` method.
         """
-        volumes = {"git_repos": {"bind": "/usr/local/apache2/git", "mode": "rw"}}
+        volumes = {
+            "git_repos": {"bind": "/usr/local/apache2/git", "mode": "rw"},
+            "webdav": {"bind": "/usr/local/apache2/webdav", "mode": "rw"},
+        }
         mounts = [
             {
                 "target": "/usr/local/apache2/htdocs",
@@ -147,7 +151,7 @@ class HttpdService:
             container_id, "chown -R www-data:www-data /usr/local/apache2/git"
         )
 
-    def create_git_repo_volume(self, volume_name: str):
+    def create_repo_volume(self, volume_name: str):
         """
         Create a git repo volume.
 
@@ -156,7 +160,7 @@ class HttpdService:
         with self.podman_service.get_client() as client:
             client.volumes.create(volume_name)
 
-    def remove_git_repo_volume(self, volume_name: str):
+    def remove_repo_volume(self, volume_name: str):
         """
         Remove a git repo volume.
 
