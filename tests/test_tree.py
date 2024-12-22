@@ -13,7 +13,7 @@ def test_build_tree():
     assert len(build_tree.children) == 5
     apache = build_tree.get("apache")
     assert apache.name == "apache"
-    assert len(apache.children) == 5
+    assert len(apache.children) == 7
     apache_conf = build_tree.get("apache").get("conf")
     assert apache_conf.name == "conf"
     assert len(apache_conf.children) == 8
