@@ -20,6 +20,7 @@ from services.httpd_service import (
     DEFAULT_CONTAINER_NAME,
     GIT_REPO_VOLUME,
     GIT_TEST_REPO,
+    WEBDAV_VOLUME,
 )
 from http_server.health_check import healthcheck
 from actions.shell import ipython_shell
@@ -110,14 +111,28 @@ def create_git_repo_volume():
     """
     Create a git repo volume
     """
-    httpd_service.create_git_repo_volume(GIT_REPO_VOLUME)
+    httpd_service.create_repo_volume(GIT_REPO_VOLUME)
 
 
 def remove_git_repo_volume():
     """
     Remove the git repo volume
     """
-    httpd_service.remove_git_repo_volume(GIT_REPO_VOLUME)
+    httpd_service.remove_repo_volume(GIT_REPO_VOLUME)
+
+
+def create_webdav_volume():
+    """
+    Create a webdav volume
+    """
+    httpd_service.create_repo_volume(WEBDAV_VOLUME)
+
+
+def remove_webdav_volume():
+    """
+    Remove the webdav volume
+    """
+    httpd_service.remove_repo_volume(WEBDAV_VOLUME)
 
 
 def create_test_repo():
