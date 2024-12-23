@@ -30,17 +30,3 @@ RUN touch /usr/local/apache2/conf/git-auth && chown www-data:www-data /usr/local
 
 # Create directories for SSL certificates
 RUN mkdir -p /usr/local/apache2/conf/ssl
-
-# Copy the httpd configuration file
-COPY conf/httpd.conf /usr/local/apache2/conf/httpd.conf
-
-# Copy the SSL configuration file
-COPY conf/extra/httpd-ssl.conf /usr/local/apache2/conf/extra/httpd-ssl.conf
-
-# Copy the git configuration files
-COPY conf/extra/httpd-git.conf /usr/local/apache2/conf/extra/httpd-git.conf
-COPY conf/extra/gitweb.conf /usr/local/apache2/conf/extra/gitweb.conf
-
-# Copy the SSL certificate and key
-COPY conf/ssl/server-cert.pem /usr/local/apache2/conf/ssl/server-cert.pem
-COPY conf/ssl/server-key.pem /usr/local/apache2/conf/ssl/server-key.pem

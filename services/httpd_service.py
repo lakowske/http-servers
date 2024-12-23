@@ -38,6 +38,12 @@ class HttpdService:
             .get("httpd-ssl.conf")
             .tree_root_path(WORKSPACE)
         )
+        self.ssl_self_signed_cert_path = (
+            config_service.config.build_paths.get("apache")
+            .get("conf")
+            .get("ssl")
+            .tree_root_path(WORKSPACE)
+        )
         self.letsencrypt_path = (
             config_service.config.build_paths.get("apache")
             .get("conf")
@@ -60,7 +66,13 @@ class HttpdService:
             .get("git-auth")
             .tree_root_path(WORKSPACE)
         )
-
+        self.gitweb_config_path = (
+            config_service.config.build_paths.get("apache")
+            .get("conf")
+            .get("extra")
+            .get("gitweb.conf")
+            .tree_root_path(WORKSPACE)
+        )
         self.apache_path = config_service.config.build_paths.get(
             "apache"
         ).tree_root_path(WORKSPACE)
@@ -100,6 +112,12 @@ class HttpdService:
                 "read_only": True,
             },
             {
+                "target": "/usr/local/apache2/conf/ssl",
+                "source": self.ssl_self_signed_cert_path,
+                "type": "bind",
+                "read_only": True,
+            },
+            {
                 "target": "/usr/local/apache2/conf/httpd.conf",
                 "source": self.httpd_config_path,
                 "type": "bind",
@@ -110,6 +128,12 @@ class HttpdService:
                 "source": self.ssl_config_path,
                 "type": "bind",
                 "read_only": False,
+            },
+            {
+                "target": "/usr/local/apache2/conf/extra/gitweb.conf",
+                "source": self.gitweb_config_path,
+                "type": "bind",
+                "read_only": True,
             },
             {
                 "target": "/usr/local/apache2/conf/git-auth",

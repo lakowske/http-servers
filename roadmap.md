@@ -23,6 +23,14 @@ configuration that don't require a container restart. Maybe configuration is
 editable over webdav, and only a `httpd -k graceful` configuration is needed?
 Consider more options to reduce downtime and improve the upgrade experience.
 
+## Reduce development/testing loop (80% complete)
+
+When a developer changes the code or templates, the amount of time taken to see
+it reflected in their local development deployment should be 1 sec or less. The
+developer should not need to perform extra ceremony to see (most) changes
+reflected in their local deployment. Mostly complete. Possibly watch files for
+changes and take actions.
+
 ## Harmonize host side FSTree and Dockerfile directories
 
 The FSTree should be the source of truth from which the directory structure is
