@@ -16,6 +16,13 @@ Improvements to the CI process, allowing the project dependencies to be
 installed, tests run and services started without unnecessary steps or
 boilerplate.
 
+## Reduce container restarts on upgrade
+
+Container restarts cause downtime. Where possible move to actions and
+configuration that don't require a container restart. Maybe configuration is
+editable over webdav, and only a `httpd -k graceful` configuration is needed?
+Consider more options to reduce downtime and improve the upgrade experience.
+
 ## Harmonize host side FSTree and Dockerfile directories
 
 The FSTree should be the source of truth from which the directory structure is
