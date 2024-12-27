@@ -61,8 +61,7 @@ class HttpdService:
             .tree_root_path(WORKSPACE)
         )
         self.git_auth_path = (
-            config_service.config.build_paths.get("apache")
-            .get("conf")
+            config_service.config.build_paths.get("secrets")
             .get("git-auth")
             .tree_root_path(WORKSPACE)
         )
