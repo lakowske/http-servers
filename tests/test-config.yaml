@@ -13,4 +13,7 @@ imap:
 admin:
   domain: "localhost"
   email: "admin@localhost"
+build:
+  build_root: "./test_build"
+
 test_value: 28

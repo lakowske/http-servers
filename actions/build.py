@@ -31,6 +31,7 @@ config_service = container.config_service()
 config_service.load_yaml_config("secrets/config.yaml")
 podman_service = container.podman_service()
 httpd_service = container.httpd_service()
+user_service = container.user_service()
 
 
 def list_containers():
@@ -181,6 +182,15 @@ def rm_image():
     assert httpd_service.get_image_id(image) is None
 
 
+def git_password():
+    """
+    Generate a new password
+    """
+    password = user_service.random_password("git")
+    print(password)
+    return password
+
+
 def run_ops():
     """
     Run the operations http server.
@@ -225,8 +235,9 @@ class CustomHelpFormatter(argparse.HelpFormatter):
         help_text = super().format_help()
         # Customize the actions list
         actions_list = "\n".join(list_functions())
+        actions_output = "\n{\n" + actions_list + "\n}"
         help_text = help_text.replace(
-            "{" + ",".join(list_functions()) + "}", actions_list
+            "{" + ",".join(list_functions()) + "}", actions_output
         )
         return help_text
 
