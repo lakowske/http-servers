@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from auth.auth import UserCredential, to_htpasswd_file, to_passwd_file
 from auth.certificates import generate_self_signed_cert
 from auth.password import random_password
+from passlib.apache import HtpasswdFile
 
 
 class AdminContext(BaseModel):
@@ -33,6 +34,7 @@ class FSTree(BaseModel):
     name: str
     path: Optional[str] = None
     isDir: bool = True
+    cleanup: bool = True
     parent: Optional["FSTree"] = Field(default=None, exclude=True)
     children: List["FSTree"] = []
 
@@ -84,12 +86,17 @@ class FSTree(BaseModel):
     def rm_path(self, build_root: str) -> str:
         """Remove a directory or file path"""
         abs_path = self.tree_root_path(build_root)
-        if os.path.exists(abs_path):
+        if os.path.exists(abs_path) and self.cleanup:
             if self.isDir:
                 shutil.rmtree(abs_path)
             else:
                 os.remove(abs_path)
         return abs_path
+
+    def exists(self, build_root: str) -> bool:
+        """Check if a path exists"""
+        abs_path = self.tree_root_path(build_root)
+        return os.path.exists(abs_path)
 
 
 class TemplateTree(FSTree):
@@ -122,28 +129,48 @@ class TemplateTree(FSTree):
 class Htpasswd(FSTree):
     """A tree node that represents an htpasswd file"""
 
+    overwrite: bool = False
+
     def __init__(self, **data):
         super().__init__(**data)
         self.isDir = False
+        self.cleanup = False
 
-    def render(self, build_root: str, users: List[UserCredential]):
+    def render(
+        self, build_root: str, users: List[UserCredential], overwrite: bool = False
+    ):
         """Render a template to a file"""
         abs_path = self.make_path(build_root)
-        to_htpasswd_file(users, abs_path)
+        do_overwrite = overwrite or self.overwrite
+        if not os.path.exists(abs_path) or do_overwrite:
+            to_htpasswd_file(users, abs_path)
         return abs_path
+
+    def read(self, build_root: str) -> HtpasswdFile:
+        """Read a htpasswd file"""
+        abs_path = self.tree_root_path(build_root)
+        ht = HtpasswdFile(abs_path)
+        return ht
 
 
 class Passwd(FSTree):
     """A tree node that represents an passwd file"""
 
+    overwrite: bool = False
+
     def __init__(self, **data):
         super().__init__(**data)
         self.isDir = False
+        self.cleanup = False
 
-    def render(self, build_root: str, users: List[UserCredential]):
+    def render(
+        self, build_root: str, users: List[UserCredential], overwrite: bool = False
+    ):
         """Render a template to a file"""
         abs_path = self.make_path(build_root)
-        to_passwd_file(users, abs_path)
+        do_overwrite = overwrite or self.overwrite
+        if not os.path.exists(abs_path) or do_overwrite:
+            to_passwd_file(users, abs_path)
         return abs_path
 
     def read(self, build_root: str) -> List[UserCredential]:
@@ -247,7 +274,6 @@ apache_conf = FSTree(
         FSTree(name="htpasswd", isDir=False),
         FSTree(name="passwd", isDir=False),
         httpd_conf_template,
-        git_auth,
     ],
 )
 
@@ -278,9 +304,9 @@ webroot = FSTree(
 
 secrets = FSTree(
     name="secrets",
-    children=[
-        passwd,
-    ],
+    path="../secrets",
+    cleanup=False,
+    children=[passwd, git_auth],
 )
 
 certbot = FSTree(

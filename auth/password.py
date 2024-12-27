@@ -17,7 +17,7 @@ from collections import Counter
 from typing import Set
 
 
-def random_password(length: int = 8) -> str:
+def random_password(length: int = 20) -> str:
     """
     Generates a random password string.
 
