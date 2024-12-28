@@ -6,6 +6,7 @@ from configuration.container import ServerContainer
 from actions.build import (
     build_image,
     build,
+    render,
     list_containers,
     run_container,
     health,
@@ -38,6 +39,13 @@ def test_build():
     Test that the podman service can build an image.
     """
     build_image()
+
+
+def test_render():
+    """
+    Test rendering the configuration tree into a build directory.
+    """
+    render()
 
 
 def test_build_and_render_with_secrets_config():
@@ -75,7 +83,7 @@ def test_httpd_service_run_container():
     run_container()
 
 
-def test_httpd_service_reload_configuration():
+def test_reload():
     """
     Test that the httpd service can reload the configuration of a container.
     """
