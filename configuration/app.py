@@ -3,7 +3,7 @@ This module contains the configuration classes for the server.
 """
 
 import os
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from configuration.tree_nodes import FSTree, AdminContext, container_paths, build_tree
@@ -70,6 +70,16 @@ class SmtpConfig(BaseModel):
     password: Optional[str] = None
 
 
+class HttpReverseProxy(BaseModel):
+    """
+    HttpReverseProxy is a configuration class for a http reverse proxy entry,
+    which is a mapping from a URL to a backend http server that will handle the request
+    """
+
+    url: str  # The URL to match (e.g. /api/login, /app/email, etc...)
+    backend: str  # The URL to forward the request to (e.g. http://localhost:8080)
+
+
 class Config(BaseModel):
     """Main server configuration"""
 
@@ -78,11 +88,17 @@ class Config(BaseModel):
     podman: PodmanConfig = PodmanConfig()
     imap: ImapConfig = ImapConfig()
     smtp: SmtpConfig = SmtpConfig()
+    proxies: List[HttpReverseProxy] = []
     build: BuildContext = BuildContext()
     container_paths: FSTree = container_paths
     build_paths: FSTree = build_tree
 
     def to_kwargs(self) -> dict:
         """Convert the configuration to a dictionary"""
-        kwargs = {**self.admin.model_dump(), **self.build.model_dump()}
+
+        kwargs = {
+            **self.admin.model_dump(),
+            **self.build.model_dump(),
+            **self.model_dump(),
+        }
         return kwargs

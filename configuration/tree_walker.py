@@ -123,8 +123,9 @@ class TreeRenderer(TreeWalker):
 
     def on_template_tree(self, node: TemplateTree, context: Config):
         """Handle a TemplateTree node"""
+        kwargs = context.to_kwargs()
         return node.render(
-            **context.to_kwargs(),
+            **kwargs,
         )
 
     def on_htpasswd(self, node: Htpasswd, context: Config):

@@ -12,5 +12,14 @@
     <p>It provides a webdav mountpoint at <a href="https://{{ domain }}/webdav">/WebDAV</a></p>
     <p>It provides a gitweb view of git repos at <a href="https://{{ domain }}/gitweb">/gitweb</a></p>
     <p>It provides for git repos located at <a href="https://{{ domain }}/git">/git</a></p>
+    <p>It serves reverse proxies</p>
+    <ul>
+        {% for proxy in proxies %}
+        <li>
+            <strong>URL:</strong> <a href="{{ proxy.url }}">{{ proxy.url }}</a> <br>
+            <strong>Backend:</strong> <a href="{{ proxy.backend }}">{{ proxy.backend }}</a>
+        </li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
