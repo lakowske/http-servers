@@ -1,0 +1,42 @@
+FROM docker.io/library/debian:bookworm-slim
+
+# Prevent interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    postfix \
+    dovecot-imapd \
+    dovecot-core \
+    mailutils \
+    libsasl2-modules \
+    rsyslog \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure Postfix
+COPY postfix-main.cf /etc/postfix/main.cf
+RUN postconf -e 'inet_interfaces = all' \
+    && postconf -e 'inet_protocols = ipv4' \
+    && postconf -e 'mynetworks = 127.0.0.0/8 [::1]/128'
+
+# Configure Dovecot
+COPY dovecot.conf /etc/dovecot/conf.d/10-mail.conf
+RUN chmod 644 /etc/dovecot/conf.d/10-mail.conf
+
+# Create mail directory and log files
+RUN mkdir -p /var/mail/vhosts && \
+    chmod -R 777 /var/mail/vhosts && \
+    mkdir -p /var/log && \
+    touch /var/log/mail.log && \
+    chown root:root /var/log/mail.log && \
+    chmod 644 /var/log/mail.log
+
+# Create startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Expose required ports
+EXPOSE 25 587 993
+
+# Use the startup script
+CMD ["/start.sh"]

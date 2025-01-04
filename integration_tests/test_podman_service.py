@@ -5,13 +5,16 @@ Integration tests for the podman service.
 from configuration.container import ServerContainer
 from actions.build import (
     build_image,
+    build_mail_image,
     build,
     render,
     list_containers,
     run_container,
+    run_mail_container,
     health,
     reload_httpd,
     rm_container,
+    rm_mail_container,
     rm_image,
     create_git_repo_volume,
     remove_git_repo_volume,
@@ -34,11 +37,18 @@ def test_podman_list_containers():
     assert containers is not None
 
 
-def test_build():
+def test_build_image():
     """
     Test that the podman service can build an image.
     """
     build_image()
+
+
+def test_build_mail_image():
+    """
+    Test that the podman service can build an image.
+    """
+    build_mail_image()
 
 
 def test_render():
@@ -83,6 +93,13 @@ def test_httpd_service_run_container():
     run_container()
 
 
+def test_smtptd_service_run_container():
+    """
+    Test that the smtpd service can run a container.
+    """
+    run_mail_container()
+
+
 def test_reload():
     """
     Test that the httpd service can reload the configuration of a container.
@@ -102,6 +119,13 @@ def test_podman_rm_container():
     Test that the podman service can remove a container.
     """
     rm_container()
+
+
+def test_podman_rm_mail_container():
+    """
+    Test that the podman service can remove a mail container.
+    """
+    rm_mail_container()
 
 
 def test_podman_rm_image():

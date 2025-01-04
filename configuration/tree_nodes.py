@@ -245,6 +245,26 @@ dockerfile_template = TemplateTree(
     template_path="Dockerfile.httpd",
 )
 
+dovecot_template = TemplateTree(
+    name="dovecot.conf",
+    template_path="dovecot.conf",
+)
+
+postfix_template = TemplateTree(
+    name="postfix-main.cf",
+    template_path="postfix-main.cf",
+)
+
+smtp_start_script = TemplateTree(
+    name="start.sh",
+    template_path="start.sh",
+)
+
+smtp_dockerfile_template = TemplateTree(
+    name="Dockerfile",
+    template_path="Dockerfile.smtpd",
+)
+
 reload_apache = TemplateTree(
     name="reload-apache.sh",
     template_path="reload-apache.sh",
@@ -295,6 +315,16 @@ apache = FSTree(
     ],
 )
 
+mail = FSTree(
+    name="mail",
+    children=[
+        postfix_template,
+        dovecot_template,
+        smtp_dockerfile_template,
+        smtp_start_script,
+    ],
+)
+
 webroot = FSTree(
     name="webroot",
     children=[
@@ -320,7 +350,7 @@ certbot = FSTree(
 
 build_tree = FSTree(
     name="build",
-    children=[apache, webroot, secrets, certbot, FSTree(name="cgi")],
+    children=[mail, apache, webroot, secrets, certbot, FSTree(name="cgi")],
 )
 
 

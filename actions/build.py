@@ -22,6 +22,10 @@ from services.httpd_service import (
     GIT_TEST_REPO,
     WEBDAV_VOLUME,
 )
+from services.smtpd_service import (
+    LATEST_IMAGE as SMTPD_LATEST_IMAGE,
+    DEFAULT_CONTAINER_NAME as SMTPD_DEFAULT_CONTAINER_NAME,
+)
 from http_server.health_check import healthcheck
 from actions.shell import ipython_shell
 
@@ -32,6 +36,7 @@ config_service.load_yaml_config("secrets/config.yaml")
 podman_service = container.podman_service()
 httpd_service = container.httpd_service()
 user_service = container.user_service()
+smtpd_service = container.smtpd_service()
 
 
 def list_containers():
@@ -62,6 +67,16 @@ def build_image():
         print(line)
 
 
+def build_mail_image():
+    """
+    Build the image using the configuration found in secrets/config.yaml
+    """
+    image_id, build_output = smtpd_service.build_image(SMTPD_LATEST_IMAGE)
+    assert image_id is not None
+    for line in build_output:
+        print(line)
+
+
 def build():
     """
     Build the image using the configuration found in secrets/config.yaml
@@ -77,6 +92,30 @@ def run_container():
     httpd_container = httpd_service.run_container(LATEST_IMAGE, DEFAULT_CONTAINER_NAME)
     assert httpd_container is not None
     assert httpd_service.is_container_running(httpd_container.id)
+
+
+def run_mail_container():
+    """
+    Run the container using the image built in the build step
+    """
+    smtpd_container = smtpd_service.run_container(
+        SMTPD_LATEST_IMAGE, SMTPD_DEFAULT_CONTAINER_NAME
+    )
+    assert smtpd_container is not None
+    assert smtpd_service.is_container_running(smtpd_container.id)
+
+
+def rm_mail_container():
+    """
+    Remove the container
+    """
+    container_id = smtpd_service.get_container_id(SMTPD_DEFAULT_CONTAINER_NAME)
+    assert container_id is not None
+    if smtpd_service.is_container_running(container_id):
+        smtpd_service.stop_container(container_id)
+    smtpd_service.remove_container(container_id)
+    container_id = smtpd_service.get_container_id(SMTPD_DEFAULT_CONTAINER_NAME)
+    assert container_id is None
 
 
 def health():

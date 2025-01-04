@@ -1,0 +1,29 @@
+# Basic Postfix settings
+smtpd_banner = $myhostname ESMTP $mail_name
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+
+# TLS parameters
+smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_use_tls=yes
+smtpd_tls_auth_only = yes
+smtp_tls_security_level = may
+
+# Authentication
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+
+# Network settings
+myhostname = mail.{{ domain }}
+mydomain = {{ domain }}
+myorigin = $mydomain
+mynetworks = 127.0.0.0/8 [::1]/128
+inet_interfaces = all
+inet_protocols = ipv4
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+
+# Logging
+maillog_file = /var/log/postfix.log
