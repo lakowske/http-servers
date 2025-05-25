@@ -65,6 +65,11 @@ class HttpdService:
             .get("git-auth")
             .tree_root_path(WORKSPACE)
         )
+        self.git_passwd_path = (
+            config_service.config.build_paths.get("secrets")
+            .get("passwd")
+            .tree_root_path(WORKSPACE)
+        )
         self.gitweb_config_path = (
             config_service.config.build_paths.get("apache")
             .get("conf")
@@ -137,6 +142,12 @@ class HttpdService:
             {
                 "target": "/usr/local/apache2/conf/git-auth",
                 "source": self.git_auth_path,
+                "type": "bind",
+                "read_only": False,
+            },
+            {
+                "target": "/usr/local/apache2/conf/passwd",
+                "source": self.git_passwd_path,
                 "type": "bind",
                 "read_only": False,
             },

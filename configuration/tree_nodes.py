@@ -8,10 +8,10 @@ import copy
 from typing import List, Optional
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
+from passlib.apache import HtpasswdFile
 from auth.auth import UserCredential, to_htpasswd_file, to_passwd_file
 from auth.certificates import generate_self_signed_cert
 from auth.password import random_password
-from passlib.apache import HtpasswdFile
 
 
 class AdminContext(BaseModel):
@@ -255,6 +255,11 @@ html_template = TemplateTree(
     template_path="index.html",
 )
 
+hello_world_cgi = TemplateTree(
+    name="hello-world.sh",
+    template_path="hello-world.sh",
+)
+
 extra = FSTree(
     name="extra",
     children=[
@@ -280,6 +285,11 @@ apache_conf = FSTree(
 scripts = FSTree(
     name="scripts",
     children=[],
+)
+
+cgi = FSTree(
+    name="cgi",
+    children=[hello_world_cgi],
 )
 
 apache = FSTree(
@@ -320,7 +330,7 @@ certbot = FSTree(
 
 build_tree = FSTree(
     name="build",
-    children=[apache, webroot, secrets, certbot, FSTree(name="cgi")],
+    children=[apache, webroot, secrets, certbot, cgi],
 )
 
 
