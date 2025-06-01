@@ -14,8 +14,9 @@ from configuration.tree_nodes import (
 
 class TreeWalker:
     """A class to walk through FSTree nodes.  Users may optionally override
-    the type specific methods to handle different types of nodes, and/or specify
-    a default method to handle nodes that aren't specifically defined."""
+    the type specific methods to handle different types of nodes, and/or
+    specify a default method to handle nodes that aren't specifically
+    defined."""
 
     def walk(self, node: FSTree, context: Config):
         """Walk through the tree and process the nodes"""
@@ -70,22 +71,24 @@ class TreeWalker:
 
 
 class TreeSimplePrinter(TreeWalker):
+    """A class to print FSTree nodes in a simple way"""
 
     def default(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
         print(f"FSTree: {node.name}")
         print(f"Path: {node.path}")
-        print(f"IsDir: {node.isDir}")
+        print(f"IsDir: {node.is_dir}")
         return node
 
 
 class TreePrinter(TreeWalker):
+    """A class to print FSTree nodes"""
 
     def on_fs_tree(self, node: FSTree, context: Config):
         """Handle an FSTree node"""
         print(f"FSTree: {node.name}")
         print(f"Path: {node.path}")
-        print(f"IsDir: {node.isDir}")
+        print(f"IsDir: {node.is_dir}")
         return node
 
     def on_template_tree(self, node: TemplateTree, context: Config):
@@ -129,11 +132,13 @@ class TreeRenderer(TreeWalker):
         )
 
     def on_htpasswd(self, node: Htpasswd, context: Config):
+        """Handle an Htpasswd node"""
         return node.render(context.build.build_root, users=context.admin.users)
 
     on_passwd = on_htpasswd
 
     def on_self_signed_certs(self, node: SelfSignedCerts, context: Config):
+        """Handle an SelfSignedCerts node"""
         return node.render(context.build.build_root, admin=context.admin)
 
 

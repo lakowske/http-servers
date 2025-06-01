@@ -1,0 +1,68 @@
+FROM docker.io/library/debian:bookworm-slim
+# Use a minimal Debian base image for the mail server
+LABEL maintainer="{{ email }}"
+
+# Install postfix and dovecot dependencies
+
+RUN apt-get update && \
+    apt-get install -y procps \
+    net-tools \
+    postfix \
+    dovecot-core \
+    dovecot-imapd \
+    supervisor \
+    rsyslog \
+    python3 \
+    python3-pip \
+    telnet \
+    mailutils \
+    mutt \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create virtual mail user
+RUN useradd -r -u 5000 -g mail -d /var/vmail -s /sbin/nologin -c "Virtual Mail User" vmail \
+    && mkdir -p /var/vmail \
+    && chown vmail:mail /var/vmail \
+    && chmod 770 /var/vmail
+
+# Copy configuration files
+COPY main.cf /etc/postfix/main.cf
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY dovecot.conf /etc/dovecot/dovecot.conf
+
+
+# Postfix virtual user configuration
+RUN echo "{{ domain }} {{ domain }}" > /etc/postfix/virtual_mailbox_domains \
+    && echo "test@{{ domain }}    {{ domain }}/test/" > /etc/postfix/virtual_mailbox_maps \
+    && echo "admin@{{ domain }}   {{ domain }}/admin/" >> /etc/postfix/virtual_mailbox_maps \
+    && cp /etc/postfix/virtual_mailbox_maps /etc/postfix/vmailbox
+
+# Generate Postfix lookup tables
+RUN postmap /etc/postfix/virtual_mailbox_domains \
+    && postmap /etc/postfix/virtual_mailbox_maps \
+    && postmap /etc/postfix/vmailbox
+
+# Create mailbox directories for test users
+RUN mkdir -p /var/vmail/{{ domain }}/test \
+    && mkdir -p /var/vmail/{{ domain }}/admin \
+    && chown -R vmail:mail /var/vmail
+
+# Create test user passwords
+RUN echo "test@{{ domain }}:{PLAIN}testpass123" > /etc/dovecot/passwd \
+    && echo "admin@{{ domain }}:{PLAIN}adminpass123" >> /etc/dovecot/passwd \
+    && chmod 644 /etc/dovecot/passwd
+
+
+# Expose SMTP port
+EXPOSE 25 587
+# Expose submission port
+EXPOSE 465
+# Expose IMAP port
+EXPOSE 993
+# Expose POP3 port
+EXPOSE 995
+
+# run supervisord to manage mail services
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

@@ -7,12 +7,14 @@ import podman
 from dependency_injector.wiring import inject, Provide
 from configuration.container import ServerContainer
 from services.config_service import ConfigService
-from services.podman_service import PodmanService
+from services.podman_client_service import PodmanClientService
 
 
 @inject
 def create_podman_client(
-    podman_service: PodmanService = Provide[ServerContainer.podman_service],
+    podman_service: PodmanClientService = Provide[
+        ServerContainer.podman_service
+    ],
 ) -> podman.PodmanClient:
     """A simple injection function to create a Podman client."""
     return podman_service.get_client()
@@ -49,7 +51,9 @@ class TestContainer(unittest.TestCase):
 
         # Assert
         self.assertIsNotNone(podman_config)
-        self.assertEqual(podman_config.socket_url, "unix:///var/run/podman/podman.sock")
+        self.assertEqual(
+            podman_config.socket_url, "unix:///var/run/podman/podman.sock"
+        )
         self.assertEqual(podman_config.timeout, 30)
         self.assertTrue(podman_config.tls_verify)
 
@@ -67,7 +71,8 @@ class TestContainer(unittest.TestCase):
         # Assert
         self.assertIsNotNone(config_service)
         self.assertIsNotNone(config_service.config)
-        # Load the test config and verify that the values were merged/overwritten
+        # Load the test config and verify that the values were
+        # merged/overwritten
         updates = config_service.load_yaml_config("tests/test-config.yaml")
         self.assertIsNotNone(updates)
         server = updates["imap"]["server"]

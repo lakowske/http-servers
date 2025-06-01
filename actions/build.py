@@ -17,10 +17,14 @@ from configuration.tree_walker import TreeRenderer
 from configuration.container import ServerContainer
 from services.httpd_service import (
     LATEST_IMAGE,
-    DEFAULT_CONTAINER_NAME,
+    DEFAULT_HTTPD_CONTAINER_NAME,
     GIT_REPO_VOLUME,
     GIT_TEST_REPO,
     WEBDAV_VOLUME,
+)
+from services.mail_service import (
+    LATEST_IMAGE as MAIL_LATEST_IMAGE,
+    DEFAULT_MAIL_CONTAINER_NAME,
 )
 from http_server.health_check import healthcheck
 from actions.shell import ipython_shell
@@ -31,6 +35,7 @@ config_service = container.config_service()
 config_service.load_yaml_config("secrets/config.yaml")
 podman_service = container.podman_service()
 httpd_service = container.httpd_service()
+mail_service = container.mail_service()
 user_service = container.user_service()
 
 
@@ -52,14 +57,36 @@ def render():
     walker.walk(config_service.config.build_paths, config_service.config)
 
 
-def build_image():
+def build_images():
     """
     Build the image using the configuration found in secrets/config.yaml
+    """
+    # Build httpd image
+    build_httpd_image()
+    # Build mail image
+    build_mail_image()
+
+
+def build_httpd_image():
+    """
+    Build the httpd image using the configuration found in secrets/config.yaml
     """
     image_id, build_output = httpd_service.build_image(LATEST_IMAGE)
     assert image_id is not None
     for line in build_output:
         print(line)
+    return image_id
+
+
+def build_mail_image():
+    """
+    Build the mail image using the configuration found in secrets/config.yaml
+    """
+    image_id, build_output = mail_service.build_image(MAIL_LATEST_IMAGE)
+    assert image_id is not None
+    for line in build_output:
+        print(line)
+    return image_id
 
 
 def build():
@@ -67,16 +94,29 @@ def build():
     Build the image using the configuration found in secrets/config.yaml
     """
     render()
-    build_image()
+    build_images()
 
 
-def run_container():
+def run_httpd_container():
     """
     Run the container using the image built in the build step
     """
-    httpd_container = httpd_service.run_container(LATEST_IMAGE, DEFAULT_CONTAINER_NAME)
+    httpd_container = httpd_service.run_container(
+        LATEST_IMAGE, DEFAULT_HTTPD_CONTAINER_NAME
+    )
     assert httpd_container is not None
     assert httpd_service.is_container_running(httpd_container.id)
+
+
+def run_mail_container():
+    """
+    Run the mail container using the image built in the build step
+    """
+    mail_container = mail_service.run_container(
+        MAIL_LATEST_IMAGE, DEFAULT_MAIL_CONTAINER_NAME
+    )
+    assert mail_container is not None
+    assert mail_service.is_container_running(mail_container.id)
 
 
 def health():
@@ -102,7 +142,7 @@ def reload_httpd():
     """
     Reload the http server configuration
     """
-    container_id = httpd_service.get_container_id(DEFAULT_CONTAINER_NAME)
+    container_id = httpd_service.get_container_id(DEFAULT_HTTPD_CONTAINER_NAME)
     assert container_id is not None
     httpd_service.reload_configuration(container_id)
     assert httpd_service.is_container_running(container_id)
@@ -140,7 +180,7 @@ def create_test_repo():
     """
     Create a test git repo
     """
-    container_id = httpd_service.get_container_id(DEFAULT_CONTAINER_NAME)
+    container_id = httpd_service.get_container_id(DEFAULT_HTTPD_CONTAINER_NAME)
     assert container_id is not None
     httpd_service.create_git_repo(container_id, GIT_TEST_REPO)
 
@@ -154,32 +194,54 @@ def reload():
         config_service.config.admin.domain
     )
     assert success
-    container_id = httpd_service.get_container_id(DEFAULT_CONTAINER_NAME)
+    container_id = httpd_service.get_container_id(DEFAULT_HTTPD_CONTAINER_NAME)
     assert container_id is not None
     httpd_service.reload_configuration(container_id)
     assert httpd_service.is_container_running(container_id)
 
 
-def rm_container():
+def rm_httpd_container():
     """
     Remove the container
     """
-    container_id = httpd_service.get_container_id(DEFAULT_CONTAINER_NAME)
+    container_id = httpd_service.get_container_id(DEFAULT_HTTPD_CONTAINER_NAME)
     assert container_id is not None
     if httpd_service.is_container_running(container_id):
         httpd_service.stop_container(container_id)
     httpd_service.remove_container(container_id)
-    container_id = httpd_service.get_container_id(DEFAULT_CONTAINER_NAME)
+    container_id = httpd_service.get_container_id(DEFAULT_HTTPD_CONTAINER_NAME)
     assert container_id is None
 
 
-def rm_image():
+def rm_mail_container():
     """
-    Remove the image
+    Remove the mail container
+    """
+    container_id = mail_service.get_container_id(DEFAULT_MAIL_CONTAINER_NAME)
+    assert container_id is not None
+    if mail_service.is_container_running(container_id):
+        mail_service.stop_container(container_id)
+    mail_service.remove_container(container_id)
+    container_id = mail_service.get_container_id(DEFAULT_MAIL_CONTAINER_NAME)
+    assert container_id is None
+
+
+def rm_httpd_image():
+    """
+    Remove the httpd image
     """
     image = LATEST_IMAGE
     httpd_service.remove_image(image)
     assert httpd_service.get_image_id(image) is None
+
+
+def rm_mail_image():
+    """
+    Remove the mail image
+    """
+    image = MAIL_LATEST_IMAGE
+    mail_service.remove_image(image)
+    assert mail_service.get_image_id(image) is None
 
 
 def git_password():
@@ -214,7 +276,8 @@ def run_shell():
 
 def list_functions():
     """
-    Introspect the available functions defined in this file and print them to the console
+    Introspect the available functions defined in this file and print them to
+    the console
     """
     current_module = sys.modules[__name__]
     functions = inspect.getmembers(current_module, inspect.isfunction)
@@ -246,8 +309,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Manage build actions", formatter_class=CustomHelpFormatter
     )
-    parser.add_argument("action", choices=list_functions(), help="Action to perform")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument(
+        "action", choices=list_functions(), help="Action to perform"
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Enable verbose output"
+    )
 
     args = parser.parse_args()
 

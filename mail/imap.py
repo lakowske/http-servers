@@ -98,10 +98,9 @@ class ImapService:
         """
         try:
             # Connect to the IMAP server
-            mail = imaplib.IMAP4(self.config.server, self.config.port)
-            mail.login(self.config.username, self.config.password)
-            self.mail = mail
-            return None, mail
+            self.mail = imaplib.IMAP4(self.config.server, self.config.port)
+            self.mail.login(self.config.username, self.config.password)
+            return None, self.mail
         except imaplib.IMAP4.error as e:
             logger.error(IMAP_ERROR_MSG, e)
             return e, None
@@ -155,7 +154,9 @@ class ImapService:
             result = self.mail.store(email_id, "+FLAGS", "\\Deleted")
             if result[0] != "OK":
                 logger.error("Failed to mark email for deletion: %s", result)
-                return Exception(f"Failed to mark email for deletion: {result}")
+                return Exception(
+                    f"Failed to mark email for deletion: {result}"
+                )
 
             # Permanently remove all emails marked for deletion
             result = self.mail.expunge()
@@ -177,13 +178,17 @@ class ImapService:
             return None, len(email_ids)
         return e, None
 
-    def fetch_all_mail_ids(self) -> Tuple[Optional[Exception], Optional[List[str]]]:
+    def fetch_all_mail_ids(
+        self,
+    ) -> Tuple[Optional[Exception], Optional[List[str]]]:
         """
         Fetch the inbox email ids from the IMAP server.
         """
         return self.search("ALL")
 
-    def fetch_all(self) -> Tuple[Optional[Exception], Optional[List[ImapEmail]]]:
+    def fetch_all(
+        self,
+    ) -> Tuple[Optional[Exception], Optional[List[ImapEmail]]]:
         """
         Fetch all emails from the IMAP server.
         """

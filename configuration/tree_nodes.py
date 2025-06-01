@@ -33,7 +33,7 @@ class FSTree(BaseModel):
 
     name: str
     path: Optional[str] = None
-    isDir: bool = True
+    is_dir: bool = True
     cleanup: bool = True
     parent: Optional["FSTree"] = Field(default=None, exclude=True)
     children: List["FSTree"] = []
@@ -70,12 +70,12 @@ class FSTree(BaseModel):
 
         abs_path = self.tree_root_path(build_root)
         # Touch a file if it is not a directory
-        if not self.isDir:
+        if not self.is_dir:
             # Create the necessary directories
             os.makedirs(os.path.dirname(abs_path), exist_ok=True)
             # Check if the file exists, if not create it
             if not os.path.exists(abs_path):
-                with open(abs_path, "w"):
+                with open(abs_path, "w", encoding="utf-8"):
                     return abs_path
 
         if not os.path.exists(abs_path):
@@ -87,7 +87,7 @@ class FSTree(BaseModel):
         """Remove a directory or file path"""
         abs_path = self.tree_root_path(build_root)
         if os.path.exists(abs_path) and self.cleanup:
-            if self.isDir:
+            if self.is_dir:
                 shutil.rmtree(abs_path)
             else:
                 os.remove(abs_path)
@@ -106,17 +106,21 @@ class TemplateTree(FSTree):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.isDir = False
+        self.is_dir = False
 
-    def render(self, build_root: str, template_root: Optional[str] = None, **kwargs):
+    def render(
+        self, build_root: str, template_root: Optional[str] = None, **kwargs
+    ):
         """Render a template to a file"""
         abs_path = self.make_path(build_root)
         template_root = template_root or build_root
         template_path = f"{template_root}/{self.template_path}"
-        env = Environment(loader=FileSystemLoader(os.path.dirname(template_path)))
+        env = Environment(
+            loader=FileSystemLoader(os.path.dirname(template_path))
+        )
         template = env.get_template(os.path.basename(self.template_path))
         rendered_content = template.render(**kwargs)
-        with open(abs_path, "w") as file:
+        with open(abs_path, "w", encoding="utf-8") as file:
             file.write(rendered_content)
 
         # Replicate file permissions from the template
@@ -133,11 +137,14 @@ class Htpasswd(FSTree):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.isDir = False
+        self.is_dir = False
         self.cleanup = False
 
     def render(
-        self, build_root: str, users: List[UserCredential], overwrite: bool = False
+        self,
+        build_root: str,
+        users: List[UserCredential],
+        overwrite: bool = False,
     ):
         """Render a template to a file"""
         abs_path = self.make_path(build_root)
@@ -160,11 +167,14 @@ class Passwd(FSTree):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.isDir = False
+        self.is_dir = False
         self.cleanup = False
 
     def render(
-        self, build_root: str, users: List[UserCredential], overwrite: bool = False
+        self,
+        build_root: str,
+        users: List[UserCredential],
+        overwrite: bool = False,
     ):
         """Render a template to a file"""
         abs_path = self.make_path(build_root)
@@ -177,12 +187,14 @@ class Passwd(FSTree):
         """Read a passwd file"""
         abs_path = self.tree_root_path(build_root)
         users = []
-        with open(abs_path, "r") as file:
+        with open(abs_path, "r", encoding="utf-8") as file:
             for line in file:
                 if line.strip() == "":
                     continue
                 username, password = line.strip().split(":")
-                users.append(UserCredential(username=username, password=password))
+                users.append(
+                    UserCredential(username=username, password=password)
+                )
         return users
 
 
@@ -191,9 +203,14 @@ class SelfSignedCerts(FSTree):
 
     def __init__(
         self,
-        children=[FSTree(name="server-cert.pem"), FSTree(name="server-key.pem")],
+        children=None,
         **data,
     ):
+        if children is None:
+            children = [
+                FSTree(name="server-cert.pem"),
+                FSTree(name="server-key.pem"),
+            ]
         super().__init__(children=children, **data)
 
     def render(self, build_root: str, admin: AdminContext):
@@ -215,8 +232,8 @@ passwd = Passwd(name="passwd")
 ssl = SelfSignedCerts(
     name="ssl",
     children=[
-        FSTree(name="server-cert.pem", isDir=False),
-        FSTree(name="server-key.pem", isDir=False),
+        FSTree(name="server-cert.pem", is_dir=False),
+        FSTree(name="server-key.pem", is_dir=False),
     ],
 )
 
@@ -240,9 +257,29 @@ gitweb_conf_template = TemplateTree(
     template_path="gitweb.conf",
 )
 
-dockerfile_template = TemplateTree(
+dockerfile_http_template = TemplateTree(
     name="Dockerfile",
     template_path="Dockerfile.httpd",
+)
+
+dockerfile_mail_template = TemplateTree(
+    name="Dockerfile",
+    template_path="Dockerfile.mail",
+)
+
+postfix_conf_template = TemplateTree(
+    name="main.cf",
+    template_path="postfix.cf",
+)
+
+dovecot_conf_template = TemplateTree(
+    name="dovecot.conf",
+    template_path="dovecot.conf",
+)
+
+supervisord_conf_template = TemplateTree(
+    name="supervisord.conf",
+    template_path="supervisord.conf",
 )
 
 reload_apache = TemplateTree(
@@ -276,8 +313,8 @@ apache_conf = FSTree(
         ssl,
         FSTree(name="live"),
         FSTree(name="letsencrypt"),
-        FSTree(name="htpasswd", isDir=False),
-        FSTree(name="passwd", isDir=False),
+        FSTree(name="htpasswd", is_dir=False),
+        FSTree(name="passwd", is_dir=False),
         httpd_conf_template,
     ],
 )
@@ -301,7 +338,22 @@ apache = FSTree(
         FSTree(name="git"),
         FSTree(name="webdav"),
         FSTree(name="webdav.lock"),
-        dockerfile_template,
+        dockerfile_http_template,
+    ],
+)
+
+mail = FSTree(
+    name="mail",
+    children=[
+        FSTree(name="conf"),
+        FSTree(name="data"),
+        FSTree(name="logs"),
+        FSTree(name="run"),
+        FSTree(name="spool"),
+        postfix_conf_template,
+        dovecot_conf_template,
+        supervisord_conf_template,
+        dockerfile_mail_template,
     ],
 )
 
@@ -330,7 +382,7 @@ certbot = FSTree(
 
 build_tree = FSTree(
     name="build",
-    children=[apache, webroot, secrets, certbot, cgi],
+    children=[apache, webroot, mail, secrets, certbot, cgi],
 )
 
 

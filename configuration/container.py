@@ -9,9 +9,10 @@ from configuration.tree_nodes import AdminContext
 from configuration.app import PodmanConfig, Config
 from configuration.app import ImapConfig
 from configuration.app import SmtpConfig
-from services.podman_service import PodmanService
+from services.podman_client_service import PodmanClientService
 from services.config_service import ConfigService
 from services.httpd_service import HttpdService
+from services.mail_service import MailService
 from services.certbot_service import CertbotService
 from services.git_service import GitService
 from services.user_service import UserService
@@ -85,28 +86,52 @@ class ServerContainer(containers.DeclarativeContainer):
 
     config_service = providers.Singleton(create_config_service)
 
-    podman_config = providers.Singleton(to_podman_config, config_service=config_service)
+    podman_config = providers.Singleton(
+        to_podman_config, config_service=config_service
+    )
 
-    imap_config = providers.Factory(to_imap_config, config_service=config_service)
+    imap_config = providers.Factory(
+        to_imap_config, config_service=config_service
+    )
 
-    smtp_config = providers.Factory(to_smtp_config, config_service=config_service)
+    smtp_config = providers.Factory(
+        to_smtp_config, config_service=config_service
+    )
 
-    podman_service = providers.Factory(PodmanService, podman_config=podman_config)
+    podman_service = providers.Factory(
+        PodmanClientService, podman_config=podman_config
+    )
 
     imap_service = providers.Singleton(ImapService, imap_config=imap_config)
 
     smtp_service = providers.Singleton(SmtpService, smtp_config=smtp_config)
 
     httpd_service = providers.Singleton(
-        HttpdService, podman_service=podman_service, config_service=config_service
+        HttpdService,
+        podman_service=podman_service,
+        config_service=config_service,
     )
 
-    certbot_service = providers.Singleton(CertbotService, config_service=config_service)
+    mail_service = providers.Singleton(
+        MailService,
+        podman_service=podman_service,
+        config_service=config_service,
+    )
 
-    git_service = providers.Singleton(GitService, config_service=config_service)
+    certbot_service = providers.Singleton(
+        CertbotService, config_service=config_service
+    )
 
-    user_service = providers.Singleton(UserService, config_service=config_service)
+    git_service = providers.Singleton(
+        GitService, config_service=config_service
+    )
+
+    user_service = providers.Singleton(
+        UserService, config_service=config_service
+    )
 
     config_api = providers.Singleton(ConfigAPI, config_service=config_service)
 
-    app_provider = providers.Singleton(AppProvider, route_providers=[config_api])
+    app_provider = providers.Singleton(
+        AppProvider, route_providers=[config_api]
+    )

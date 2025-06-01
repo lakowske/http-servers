@@ -6,7 +6,12 @@ import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-from configuration.tree_nodes import FSTree, AdminContext, container_paths, build_tree
+from configuration.tree_nodes import (
+    FSTree,
+    AdminContext,
+    container_paths,
+    build_tree,
+)
 
 # Create an absolute workspace directory variable
 MODULE = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +29,9 @@ class PodmanConfig(BaseModel):
         cert_path (Optional[str]): The path to the TLS certificates, if any.
     """
 
-    socket_url: Optional[str] = Field(default=None, description="Path to Podman socket")
+    socket_url: Optional[str] = Field(
+        default=None, description="Path to Podman socket"
+    )
     timeout: Optional[int] = Field(
         default=30, description="Timeout value for Podman operations"
     )
@@ -40,7 +47,7 @@ class Runtime(BaseModel):
     """Runtime is a configuration class for the server runtime"""
 
     withinContainer: bool = (
-        False  # Whether the app is running within the httpd container, or on the host
+        False  # the app is running within the httpd container, or on the host
     )
 
 
@@ -55,7 +62,7 @@ class ImapConfig(BaseModel):
     """ImapConfig is a configuration class for the IMAP server"""
 
     server: str = "localhost"
-    port: int = 1143
+    port: int = 143
     username: Optional[str] = None
     password: Optional[str] = None
 
@@ -64,7 +71,7 @@ class SmtpConfig(BaseModel):
     """SmtpConfig is a configuration class for the SMTP server"""
 
     server: str = "localhost"
-    port: int = 1025
+    port: int = 25
     sender_email: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
@@ -73,11 +80,14 @@ class SmtpConfig(BaseModel):
 class HttpReverseProxy(BaseModel):
     """
     HttpReverseProxy is a configuration class for a http reverse proxy entry,
-    which is a mapping from a URL to a backend http server that will handle the request
+    which is a mapping from a URL to a backend http server that will handle the
+    request
     """
 
     url: str  # The URL to match (e.g. /api/login, /app/email, etc...)
-    backend: str  # The URL to forward the request to (e.g. http://localhost:8080)
+    backend: (
+        str  # The URL to forward the request to (e.g. http://localhost:8080)
+    )
 
 
 class Config(BaseModel):

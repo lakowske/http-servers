@@ -39,8 +39,8 @@ class SmtpService:
         Login to the SMTP server.
         """
         smtp = smtplib.SMTP(self.smtp_config.server, self.smtp_config.port)
-        smtp.starttls()
-        smtp.login(self.smtp_config.username, self.smtp_config.password)
+        # smtp.starttls()
+        # smtp.login(self.smtp_config.username, self.smtp_config.password)
         return smtp
 
     def send_email(self, email: Email):
@@ -61,10 +61,10 @@ class SmtpService:
             smtp.set_debuglevel(1)
 
             # Start TLS if needed
-            smtp.starttls()
+            # smtp.starttls()
 
             # Login and send email
-            smtp.login(self.smtp_config.username, self.smtp_config.password)
+            # smtp.login(self.smtp_config.username, self.smtp_config.password)
             smtp.sendmail(email.from_, email.to, msg.as_string())
             smtp.quit()
             return True

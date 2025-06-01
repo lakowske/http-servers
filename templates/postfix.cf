@@ -1,0 +1,29 @@
+myhostname = {{ domain }}
+mydomain = {{ domain }}
+myorigin = \$mydomain
+
+inet_interfaces = all
+inet_protocols = ipv4
+
+# Virtual mailbox configuration
+virtual_mailbox_domains = hash:/etc/postfix/virtual_mailbox_domains
+virtual_mailbox_maps = hash:/etc/postfix/virtual_mailbox_maps
+virtual_mailbox_base = /var/vmail
+virtual_uid_maps = static:5000
+virtual_gid_maps = static:5000
+virtual_minimum_uid = 100
+
+# Delivery settings
+mydestination = localhost, localhost.localdomain
+mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+mailbox_size_limit = 0
+recipient_delimiter = +
+
+# Disable some security for testing
+smtpd_client_restrictions = permit_mynetworks
+smtpd_helo_restrictions = permit_mynetworks
+smtpd_sender_restrictions = permit_mynetworks
+smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
+
+virtual_transport = virtual
+
