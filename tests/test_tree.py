@@ -10,7 +10,7 @@ def test_build_tree():
     # Test default values
     assert build_tree.name == "build"
     # Test children
-    assert len(build_tree.children) == 5
+    assert len(build_tree.children) == 6
     apache = build_tree.get("apache")
     assert apache.name == "apache"
     assert len(apache.children) == 7
@@ -45,5 +45,7 @@ def test_container_tree():
 def test_schema_dump():
 
     schema = build_tree.model_json_schema()
-    assert schema["$defs"]["FSTree"]["description"] == "A tree of build artifacts"
+    assert (
+        schema["$defs"]["FSTree"]["description"] == "A tree of build artifacts"
+    )
     assert "build" == build_tree.name
