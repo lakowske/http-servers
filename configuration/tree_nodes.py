@@ -272,6 +272,11 @@ postfix_conf_template = TemplateTree(
     template_path="postfix.cf",
 )
 
+postfix_master_template = TemplateTree(
+    name="master.cf",
+    template_path="postfix.master.cf",
+)
+
 dovecot_conf_template = TemplateTree(
     name="dovecot.conf",
     template_path="dovecot.conf",
@@ -310,7 +315,6 @@ apache_conf = FSTree(
     name="conf",
     children=[
         extra,
-        ssl,
         FSTree(name="live"),
         FSTree(name="letsencrypt"),
         FSTree(name="htpasswd", is_dir=False),
@@ -351,6 +355,7 @@ mail = FSTree(
         FSTree(name="run"),
         FSTree(name="spool"),
         postfix_conf_template,
+        postfix_master_template,
         dovecot_conf_template,
         supervisord_conf_template,
         dockerfile_mail_template,
@@ -382,7 +387,7 @@ certbot = FSTree(
 
 build_tree = FSTree(
     name="build",
-    children=[apache, webroot, mail, secrets, certbot, cgi],
+    children=[apache, webroot, mail, secrets, certbot, ssl, cgi],
 )
 
 

@@ -21,14 +21,19 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create virtual mail user
+# Create virtual mail directory, user and group. This user will own the mail directories.
 RUN useradd -r -u 5000 -g mail -d /var/vmail -s /sbin/nologin -c "Virtual Mail User" vmail \
     && mkdir -p /var/vmail \
     && chown vmail:mail /var/vmail \
     && chmod 770 /var/vmail
 
+# Create the SSL/TLS certificate directory
+RUN mkdir -p /etc/ssl/certs/server
+RUN mkdir -p /etc/ssl/certs/letsencrypt
+
 # Copy configuration files
 COPY main.cf /etc/postfix/main.cf
+COPY master.cf /etc/postfix/master.cf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY dovecot.conf /etc/dovecot/dovecot.conf
 

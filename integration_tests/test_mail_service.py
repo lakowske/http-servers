@@ -13,7 +13,7 @@ SECRETS_FILE = "secrets/config.yaml"
 container = ServerContainer()
 config_service = container.config_service()
 config_service.load_yaml_config(SECRETS_FILE)
-TEST_ADDRESS = config_service.config.admin.email
+TEST_ADDRESS = "admin@" + config_service.config.admin.domain
 
 
 def test_imap_search():
@@ -94,7 +94,10 @@ def test_roundtrip_email():
         e, mails = imap.fetch_from(TEST_ADDRESS)
         if e is None and mails is not None:
             for some_mail in mails:
-                if some_mail.subject == f"__Email Test {message_uuid} Round Trip":
+                if (
+                    some_mail.subject
+                    == f"__Email Test {message_uuid} Round Trip"
+                ):
                     return some_mail
         return None
 

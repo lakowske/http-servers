@@ -61,10 +61,10 @@ class SmtpService:
             smtp.set_debuglevel(1)
 
             # Start TLS if needed
-            # smtp.starttls()
+            smtp.starttls()
 
             # Login and send email
-            # smtp.login(self.smtp_config.username, self.smtp_config.password)
+            smtp.login(self.smtp_config.username, self.smtp_config.password)
             smtp.sendmail(email.from_, email.to, msg.as_string())
             smtp.quit()
             return True

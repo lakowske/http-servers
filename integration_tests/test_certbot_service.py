@@ -16,17 +16,44 @@ def test_certbot():
     """
     certbot = container.certbot_service()
     success = certbot.create_certificate(
-        config_service.config.admin.domain, dry_run=False, staging=True
+        config_service.config.admin.domain,
+        staging=False,
+        dry_run=False,
     )
     assert success is True
 
 
 def test_update_apache_configs_to_letsencrypt():
     """
-    Test that the certbot service can update Apache configurations to use the new certificate.
+    Test that the certbot service can update Apache configurations to use the
+    new certificate.
     """
     certbot = container.certbot_service()
     success = certbot.update_apache_configs_to_letsencrypt(
+        config_service.config.admin.domain
+    )
+    assert success
+
+
+def test_update_dovecot_configs_to_letsencrypt():
+    """
+    Test that the certbot service can update Dovecot configurations to use the
+    new certificate.
+    """
+    certbot = container.certbot_service()
+    success = certbot.update_dovecot_configs_to_letsencrypt(
+        config_service.config.admin.domain
+    )
+    assert success
+
+
+def test_update_postfix_configs_to_letsencrypt():
+    """
+    Test that the certbot service can update Postfix configurations to use the
+    new certificate.
+    """
+    certbot = container.certbot_service()
+    success = certbot.update_postfix_configs_to_letsencrypt(
         config_service.config.admin.domain
     )
     assert success

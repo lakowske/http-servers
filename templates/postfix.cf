@@ -19,11 +19,39 @@ mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
 mailbox_size_limit = 0
 recipient_delimiter = +
 
+# SSL/TLS Configuration
+smtpd_tls_cert_file = /etc/ssl/certs/server/server-cert.pem
+smtpd_tls_key_file = /etc/ssl/certs/server/server-key.pem
+smtpd_use_tls = yes
+smtpd_tls_security_level = encrypt
+smtpd_tls_auth_only = yes
+smtpd_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtpd_tls_ciphers = high
+smtpd_tls_exclude_ciphers = aNULL, MD5
+
+# SASL Authentication
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_security_options = noanonymous, noplaintext
+smtpd_sasl_tls_security_options = noanonymous
+
+
+# Secure Relay Restrictions
+smtpd_client_restrictions = permit_sasl_authenticated, reject
+smtpd_helo_restrictions = permit_sasl_authenticated, reject_unauth_pipelining
+smtpd_sender_restrictions = permit_sasl_authenticated, reject_unauth_destination
+smtpd_recipient_restrictions = permit_sasl_authenticated, permit_mynetworks, reject_unauth_destination
+
+# Submission port configuration
+smtpd_milters = 
+non_smtpd_milters = 
+
 # Disable some security for testing
-smtpd_client_restrictions = permit_mynetworks
-smtpd_helo_restrictions = permit_mynetworks
-smtpd_sender_restrictions = permit_mynetworks
-smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
+#smtpd_client_restrictions = permit_mynetworks
+#smtpd_helo_restrictions = permit_mynetworks
+#smtpd_sender_restrictions = permit_mynetworks
+#smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 
 virtual_transport = virtual
 

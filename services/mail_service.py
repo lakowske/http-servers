@@ -12,6 +12,7 @@ from configuration.app import WORKSPACE
 
 LATEST_IMAGE = "mail-nexus:latest"
 DEFAULT_MAIL_CONTAINER_NAME = "mail-nexus"
+MAIL_VOLUME = "mail"
 
 
 class MailService(PodmanService):
@@ -42,9 +43,17 @@ class MailService(PodmanService):
             .get("logs")
             .tree_root_path(WORKSPACE)
         )
+        self.mail_ssl_cert_path = config_service.config.build_paths.get(
+            "ssl"
+        ).tree_root_path(WORKSPACE)
         self.mail_smtp_conf_path = (
             config_service.config.build_paths.get("mail")
             .get("main.cf")
+            .tree_root_path(WORKSPACE)
+        )
+        self.postfix_master_conf_path = (
+            config_service.config.build_paths.get("mail")
+            .get("master.cf")
             .tree_root_path(WORKSPACE)
         )
         self.mail_dovecot_conf_path = (
@@ -67,6 +76,12 @@ class MailService(PodmanService):
             .get("Dockerfile")
             .tree_root_path(WORKSPACE)
         )
+        self.letsencrypt_path = (
+            config_service.config.build_paths.get("apache")
+            .get("conf")
+            .get("letsencrypt")
+            .tree_root_path(WORKSPACE)
+        )
 
     def run_container(self, image: str, name: str) -> Container:
         """Run a container with the specified image and name.
@@ -80,10 +95,36 @@ class MailService(PodmanService):
             "587/tcp": 587,  # SMTP Submission
             "993/tcp": 993,  # IMAPS
         }
+
+        volumes = {
+            "mail": {
+                "bind": "/var/vmail",
+                "mode": "rw",
+            },
+        }
+
         mounts = [
+            {
+                "target": "/etc/ssl/certs/server",
+                "source": self.mail_ssl_cert_path,
+                "type": "bind",
+                "read_only": True,
+            },
+            {
+                "target": "/etc/ssl/certs/letsencrypt",
+                "source": self.letsencrypt_path,
+                "type": "bind",
+                "read_only": True,
+            },
             {
                 "target": "/etc/postfix/main.cf",
                 "source": self.mail_smtp_conf_path,
+                "type": "bind",
+                "read_only": False,
+            },
+            {
+                "target": "/etc/postfix/master.cf",
+                "source": self.postfix_master_conf_path,
                 "type": "bind",
                 "read_only": False,
             },
@@ -106,9 +147,7 @@ class MailService(PodmanService):
                 image=image,
                 name=name,
                 ports=ports,
-                # volumes={
-                #    self.mail_data_path: {"bind": "/var/mail", "mode": "rw"},
-                # },
+                volumes=volumes,
                 mounts=mounts,
                 detach=True,
                 environment={
@@ -136,3 +175,27 @@ class MailService(PodmanService):
         return self.podman_service.build_image(
             path=self.mail_path, dockerfile=self.mail_dockefile, tag=tag
         )
+
+    def create_mail_volume(self, name: str):
+        """
+        Create a mail volume.
+
+        This method creates a new mail volume with the provided name.
+        """
+        with self.podman_service.get_client() as client:
+            if client.volumes.exists(name):
+                return client.volumes.get(name)
+            # If the volume does not exist, create it
+            client.volumes.create(name=name)
+
+    def remove_mail_volume(self, name: str):
+        """
+        Remove a mail volume.
+
+        This method removes the mail volume with the provided name.
+        """
+        with self.podman_service.get_client() as client:
+            if client.volumes.exists(name):
+                client.volumes.get(name).remove()
+            else:
+                raise ValueError(f"Volume {name} does not exist.")

@@ -78,7 +78,7 @@ def generate_self_signed_cert(
 
 def wait_for_webserver(domain):
     """Wait for the web server to be ready"""
-    max_attempts = 30
+    max_attempts = 10
     attempt = 0
 
     while attempt < max_attempts:
@@ -159,7 +159,9 @@ def certbot_ssl(
         return False
 
 
-def update_apache_ssl_config_to_letsencrypt(ssl_config_path: str, domains: list[str]):
+def update_apache_ssl_config_to_letsencrypt(
+    ssl_config_path: str, domains: list[str]
+):
     """
     Update the Apache configuration to use the new certificate.
     """
@@ -170,7 +172,10 @@ def update_apache_ssl_config_to_letsencrypt(ssl_config_path: str, domains: list[
     # Replace certificate paths
     config = config.replace(
         'SSLCertificateFile "/usr/local/apache2/conf/ssl/server-cert.pem"',
-        f'SSLCertificateFile "/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/fullchain.pem"',
+        (
+            f"SSLCertificateFile "
+            f'"/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/fullchain.pem"'
+        ),
     )
     config = config.replace(
         'SSLCertificateKeyFile "/usr/local/apache2/conf/ssl/server-key.pem"',
@@ -178,6 +183,61 @@ def update_apache_ssl_config_to_letsencrypt(ssl_config_path: str, domains: list[
     )
 
     with open(ssl_config_path, "w", encoding="utf-8") as f:
+        f.write(config)
+
+    return True
+
+
+def update_dovecot_ssl_config_to_letsencrypt(
+    dovecot_config_path: str, domains: list[str]
+):
+    """
+    Update the Dovecot configuration to use the new certificate.
+    """
+
+    with open(dovecot_config_path, "r", encoding="utf-8") as f:
+        config = f.read()
+
+    # Replace certificate paths
+    config = config.replace(
+        "ssl_cert = </etc/ssl/certs/server/server-cert.pem",
+        f"ssl_cert = </etc/ssl/certs/letsencrypt/live/{domains[0]}/fullchain.pem",
+    )
+    config = config.replace(
+        "ssl_key = </etc/ssl/certs/server/server-key.pem",
+        f"ssl_key = </etc/ssl/certs/letsencrypt/live/{domains[0]}/privkey.pem",
+    )
+
+    with open(dovecot_config_path, "w", encoding="utf-8") as f:
+        f.write(config)
+
+    return True
+
+
+def update_postfix_ssl_config_to_letsencrypt(
+    postfix_config_path: str, domains: list[str]
+):
+    """
+    Update the Postfix configuration to use the new certificate.
+    """
+
+    with open(postfix_config_path, "r", encoding="utf-8") as f:
+        config = f.read()
+
+    # Replace certificate paths
+    config = config.replace(
+        "smtpd_tls_cert_file = /etc/ssl/certs/server/server-cert.pem",
+        (
+            f"smtpd_tls_cert_file = "
+            f"/etc/ssl/certs/letsencrypt/live/{domains[0]}/fullchain.pem"
+        ),
+    )
+    config = config.replace(
+        "smtpd_tls_key_file = /etc/ssl/certs/server/server-key.pem",
+        f"smtpd_tls_key_file = /etc/ssl/certs/letsencrypt/live/{domains[0]}/privkey.pem",
+    )
+
+    with open(postfix_config_path, "w", encoding="utf-8") as f:
         f.write(config)
 
     return True

@@ -99,6 +99,7 @@ class ImapService:
         try:
             # Connect to the IMAP server
             self.mail = imaplib.IMAP4(self.config.server, self.config.port)
+            self.mail.starttls()  # Upgrade to a secure connection
             self.mail.login(self.config.username, self.config.password)
             return None, self.mail
         except imaplib.IMAP4.error as e:

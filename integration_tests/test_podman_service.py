@@ -18,6 +18,8 @@ from actions.build import (
     rm_mail_container,
     rm_httpd_image,
     rm_mail_image,
+    create_mail_volume,
+    remove_mail_volume,
     create_git_repo_volume,
     remove_git_repo_volume,
     create_test_repo,
@@ -60,6 +62,26 @@ def test_build_mail_image():
     """
     image_id = build_mail_image()
     assert image_id is not None
+
+
+def test_mail_volume_creation():
+    """
+    Test that the podman service can create a mail volume.
+    """
+    # Assuming you have a similar function for the mail service
+    # create_mail_volume() or similar
+
+    create_mail_volume()
+
+
+def test_mail_volume_removal():
+    """
+    Test that the podman service can remove a mail volume.
+    """
+    # Assuming you have a similar function for the mail service
+    # remove_mail_volume() or similar
+
+    remove_mail_volume()
 
 
 def test_render():

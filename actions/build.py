@@ -25,6 +25,7 @@ from services.httpd_service import (
 from services.mail_service import (
     LATEST_IMAGE as MAIL_LATEST_IMAGE,
     DEFAULT_MAIL_CONTAINER_NAME,
+    MAIL_VOLUME,
 )
 from http_server.health_check import healthcheck
 from actions.shell import ipython_shell
@@ -146,6 +147,20 @@ def reload_httpd():
     assert container_id is not None
     httpd_service.reload_configuration(container_id)
     assert httpd_service.is_container_running(container_id)
+
+
+def create_mail_volume():
+    """
+    Create a mail volume
+    """
+    mail_service.create_mail_volume(MAIL_VOLUME)
+
+
+def remove_mail_volume():
+    """
+    Remove the mail volume
+    """
+    mail_service.remove_mail_volume(MAIL_VOLUME)
 
 
 def create_git_repo_volume():

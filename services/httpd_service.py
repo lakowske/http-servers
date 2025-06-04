@@ -53,12 +53,9 @@ class HttpdService(PodmanService):
             .get("httpd-ssl.conf")
             .tree_root_path(WORKSPACE)
         )
-        self.ssl_self_signed_cert_path = (
-            config_service.config.build_paths.get("apache")
-            .get("conf")
-            .get("ssl")
-            .tree_root_path(WORKSPACE)
-        )
+        self.ssl_self_signed_cert_path = config_service.config.build_paths.get(
+            "ssl"
+        ).tree_root_path(WORKSPACE)
         self.letsencrypt_path = (
             config_service.config.build_paths.get("apache")
             .get("conf")
