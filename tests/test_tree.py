@@ -10,21 +10,21 @@ def test_build_tree():
     # Test default values
     assert build_tree.name == "build"
     # Test children
-    assert len(build_tree.children) == 6
+    assert len(build_tree.children) == 7
     apache = build_tree.get("apache")
     assert apache.name == "apache"
     assert len(apache.children) == 7
     apache_conf = build_tree.get("apache").get("conf")
     assert apache_conf.name == "conf"
-    assert len(apache_conf.children) == 7
+    assert len(apache_conf.children) == 6
     # Test to_absolute_path
     abs_path = apache_conf.tree_root_path(WORKSPACE)
     assert abs_path == f"{WORKSPACE}/build/apache/conf"
     # Test make_path
     abs_path = apache_conf.make_path(WORKSPACE)
     assert abs_path == f"{WORKSPACE}/build/apache/conf"
-    apache_conf_ssl = apache_conf.get("ssl")
-    assert apache_conf_ssl.name == "ssl"
+    apache_conf_ssl = apache_conf.get("letsencrypt")
+    assert apache_conf_ssl.name == "letsencrypt"
     apache_conf_ssl_path = apache_conf_ssl.make_path(WORKSPACE)
     # Verify path creation
     assert os.path.exists(abs_path)
@@ -45,7 +45,5 @@ def test_container_tree():
 def test_schema_dump():
 
     schema = build_tree.model_json_schema()
-    assert (
-        schema["$defs"]["FSTree"]["description"] == "A tree of build artifacts"
-    )
+    assert schema["$defs"]["FSTree"]["description"] == "A tree of build artifacts"
     assert "build" == build_tree.name

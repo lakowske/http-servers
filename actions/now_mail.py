@@ -5,7 +5,7 @@ deleting a user, and listing all users.
 """
 
 import os
-from DynamicCLI import DynamicCLI
+from actions.dynamic_cli import DynamicCLI
 
 cli = DynamicCLI()
 
