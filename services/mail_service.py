@@ -30,58 +30,26 @@ class MailService(PodmanService):
         """
         super().__init__(podman_service, config_service)
 
-        self.mail_path = config_service.config.build_paths.get(
-            "mail"
-        ).tree_root_path(WORKSPACE)
-        self.mail_data_path = (
-            config_service.config.build_paths.get("mail")
-            .get("data")
-            .tree_root_path(WORKSPACE)
-        )
-        self.mail_log_path = (
-            config_service.config.build_paths.get("mail")
-            .get("logs")
-            .tree_root_path(WORKSPACE)
-        )
-        self.mail_ssl_cert_path = config_service.config.build_paths.get(
-            "ssl"
-        ).tree_root_path(WORKSPACE)
+        self.mail_path = config_service.config.build_paths.get("mail").tree_root_path(WORKSPACE)
+        self.workspace_path = WORKSPACE
+        self.mail_ssl_cert_path = config_service.config.build_paths.get("ssl").tree_root_path(WORKSPACE)
         self.mail_smtp_conf_path = (
-            config_service.config.build_paths.get("mail")
-            .get("main.cf")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("mail").get("main.cf").tree_root_path(WORKSPACE)
         )
         self.postfix_master_conf_path = (
-            config_service.config.build_paths.get("mail")
-            .get("master.cf")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("mail").get("master.cf").tree_root_path(WORKSPACE)
         )
         self.mail_dovecot_conf_path = (
-            config_service.config.build_paths.get("mail")
-            .get("dovecot.conf")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("mail").get("dovecot.conf").tree_root_path(WORKSPACE)
         )
         self.mail_supervisor_conf_path = (
-            config_service.config.build_paths.get("mail")
-            .get("supervisord.conf")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("mail").get("supervisord.conf").tree_root_path(WORKSPACE)
         )
-        self.mail_conf_path = (
-            config_service.config.build_paths.get("mail")
-            .get("conf")
-            .tree_root_path(WORKSPACE)
-        )
-        self.mail_dockefile = (
-            config_service.config.build_paths.get("mail")
-            .get("Dockerfile")
-            .tree_root_path(WORKSPACE)
-        )
+        self.mail_dockefile = config_service.config.build_paths.get("mail").get("Dockerfile").tree_root_path(WORKSPACE)
         self.letsencrypt_path = (
-            config_service.config.build_paths.get("apache")
-            .get("conf")
-            .get("letsencrypt")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("apache").get("conf").get("letsencrypt").tree_root_path(WORKSPACE)
         )
+        self.actions_path = WORKSPACE + "/actions"
 
     def run_container(self, image: str, name: str) -> Container:
         """Run a container with the specified image and name.
@@ -104,6 +72,12 @@ class MailService(PodmanService):
         }
 
         mounts = [
+            {
+                "target": "/usr/local/actions",
+                "source": self.actions_path,
+                "type": "bind",
+                "read_only": False,
+            },
             {
                 "target": "/etc/ssl/certs/server",
                 "source": self.mail_ssl_cert_path,
@@ -151,13 +125,9 @@ class MailService(PodmanService):
                 mounts=mounts,
                 detach=True,
                 environment={
-                    "OVERRIDE_HOSTNAME": (
-                        self.config_service.config.admin.domain
-                    ),
+                    "OVERRIDE_HOSTNAME": (self.config_service.config.admin.domain),
                     "MAIL_DOMAIN": (self.config_service.config.admin.domain),
-                    "MAIL_ADMIN_EMAIL": (
-                        self.config_service.config.admin.email
-                    ),
+                    "MAIL_ADMIN_EMAIL": (self.config_service.config.admin.email),
                     "NETWORK_INTERFACE": "",
                     "PERMIT_DOCKER": "host",
                     "LOG_LEVEL": "info",
@@ -172,9 +142,7 @@ class MailService(PodmanService):
 
         This method builds an new image with the provided tag.
         """
-        return self.podman_service.build_image(
-            path=self.mail_path, dockerfile=self.mail_dockefile, tag=tag
-        )
+        return self.podman_service.build_image(path=self.workspace_path, dockerfile=self.mail_dockefile, tag=tag)
 
     def create_mail_volume(self, name: str):
         """

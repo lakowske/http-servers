@@ -78,17 +78,17 @@ def parse_imap_email(raw_email: bytes, imap_id: str) -> ImapEmail:
 
 class ImapService:
     """
-    A service to interact with an IMAP server.  Performs common operations so that
-    the user does not have to interact with IMAP directly.
+    A service to interact with an IMAP server.  Performs common operations so
+    that the user does not have to interact with IMAP directly.
     """
 
     def __init__(self, imap_config: ImapConfig, mailbox: str = "inbox"):
         self.config = imap_config
         self.mailbox = mailbox
-        # We login right away so that we can use the mail object for all operations
-        # without having to login each time.  The assumption is that the user wants
-        # a simple interface to the IMAP server, otherwise they would use the IMAP
-        # library directly.
+        # We login right away so that we can use the mail object for all
+        # operations without having to login each time.  The assumption is that
+        # the user wants a simple interface to the IMAP server, otherwise they
+        # would use the IMAP library directly.
         self.login()
         self.mail.select(mailbox)
 

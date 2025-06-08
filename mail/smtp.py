@@ -26,8 +26,8 @@ class Email(BaseModel):
 
 class SmtpService:
     """
-    A service to interact with an SMTP server.  Performs common operations so that
-    the user does not have to interact with SMTP directly.
+    A service to interact with an SMTP server.  Performs common operations so
+    that the user does not have to interact with SMTP directly.
     """
 
     def __init__(self, smtp_config: SmtpConfig):
@@ -68,6 +68,6 @@ class SmtpService:
             smtp.sendmail(email.from_, email.to, msg.as_string())
             smtp.quit()
             return True
-        except Exception as e:
+        except smtplib.SMTPException as e:
             print(f"Failed to send email: {e}")
             return False

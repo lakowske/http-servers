@@ -36,15 +36,10 @@ class HttpdService(PodmanService):
         super().__init__(podman_service, config_service)
 
         self.build_paths = config_service.config.build_paths
-        self.webroot_path = self.build_paths.get("webroot").tree_root_path(
-            WORKSPACE
-        )
+        self.webroot_path = self.build_paths.get("webroot").tree_root_path(WORKSPACE)
         self.cgi_path = self.build_paths.get("cgi").tree_root_path(WORKSPACE)
         self.httpd_config_path = (
-            config_service.config.build_paths.get("apache")
-            .get("conf")
-            .get("httpd.conf")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("apache").get("conf").get("httpd.conf").tree_root_path(WORKSPACE)
         )
         self.ssl_config_path = (
             config_service.config.build_paths.get("apache")
@@ -53,35 +48,14 @@ class HttpdService(PodmanService):
             .get("httpd-ssl.conf")
             .tree_root_path(WORKSPACE)
         )
-        self.ssl_self_signed_cert_path = config_service.config.build_paths.get(
-            "ssl"
-        ).tree_root_path(WORKSPACE)
+        self.ssl_self_signed_cert_path = config_service.config.build_paths.get("ssl").tree_root_path(WORKSPACE)
         self.letsencrypt_path = (
-            config_service.config.build_paths.get("apache")
-            .get("conf")
-            .get("letsencrypt")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("apache").get("conf").get("letsencrypt").tree_root_path(WORKSPACE)
         )
-        self.scripts_path = (
-            config_service.config.build_paths.get("apache")
-            .get("scripts")
-            .tree_root_path(WORKSPACE)
-        )
-        self.git_repos_path = (
-            config_service.config.build_paths.get("apache")
-            .get("git")
-            .tree_root_path(WORKSPACE)
-        )
-        self.git_auth_path = (
-            config_service.config.build_paths.get("secrets")
-            .get("git-auth")
-            .tree_root_path(WORKSPACE)
-        )
-        self.git_passwd_path = (
-            config_service.config.build_paths.get("secrets")
-            .get("passwd")
-            .tree_root_path(WORKSPACE)
-        )
+        self.scripts_path = config_service.config.build_paths.get("apache").get("scripts").tree_root_path(WORKSPACE)
+        self.git_repos_path = config_service.config.build_paths.get("apache").get("git").tree_root_path(WORKSPACE)
+        self.git_auth_path = config_service.config.build_paths.get("secrets").get("git-auth").tree_root_path(WORKSPACE)
+        self.git_passwd_path = config_service.config.build_paths.get("secrets").get("passwd").tree_root_path(WORKSPACE)
         self.gitweb_config_path = (
             config_service.config.build_paths.get("apache")
             .get("conf")
@@ -89,14 +63,11 @@ class HttpdService(PodmanService):
             .get("gitweb.conf")
             .tree_root_path(WORKSPACE)
         )
-        self.apache_path = config_service.config.build_paths.get(
-            "apache"
-        ).tree_root_path(WORKSPACE)
+        self.apache_path = config_service.config.build_paths.get("apache").tree_root_path(WORKSPACE)
         self.apache_dockefile = (
-            config_service.config.build_paths.get("apache")
-            .get("Dockerfile")
-            .tree_root_path(WORKSPACE)
+            config_service.config.build_paths.get("apache").get("Dockerfile").tree_root_path(WORKSPACE)
         )
+        self.workspace_path = WORKSPACE
 
     def run_container(self, image: str, name: str) -> Container:
         """
@@ -195,9 +166,7 @@ class HttpdService(PodmanService):
         This method updates the ownership of the mountpoints of the container
         with the provided container_id.
         """
-        self.podman_service.exec_container(
-            container_id, "chown -R www-data:www-data /usr/local/apache2/git"
-        )
+        self.podman_service.exec_container(container_id, "chown -R www-data:www-data /usr/local/apache2/git")
 
     def create_repo_volume(self, volume_name: str):
         """
@@ -237,6 +206,4 @@ class HttpdService(PodmanService):
 
         This method builds an new image with the provided tag.
         """
-        return self.podman_service.build_image(
-            path=self.apache_path, dockerfile=self.apache_dockefile, tag=tag
-        )
+        return self.podman_service.build_image(path=self.workspace_path, dockerfile=self.apache_dockefile, tag=tag)

@@ -1,5 +1,6 @@
 """
-This module starts an IPython shell with the necessary imports and services available.
+This module starts an IPython shell with the necessary imports and services
+available.
 """
 
 from IPython import start_ipython

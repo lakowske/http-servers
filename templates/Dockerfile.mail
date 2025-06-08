@@ -14,12 +14,22 @@ RUN apt-get update && \
     rsyslog \
     python3 \
     python3-pip \
+    python3-venv \
+    ipython3 \
     telnet \
     mailutils \
     mutt \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Create a venvironment for the mail server management script
+RUN python3 -m venv /usr/local/venv \
+    && /usr/local/venv/bin/pip install --upgrade pip \
+    && /usr/local/venv/bin/pip install --no-cache-dir requests flask
+
+# Create app directory for the mail server management script
+RUN mkdir -p /usr/local/actions
 
 # Create virtual mail directory, user and group. This user will own the mail directories.
 RUN useradd -r -u 5000 -g mail -d /var/vmail -s /sbin/nologin -c "Virtual Mail User" vmail \
@@ -31,34 +41,24 @@ RUN useradd -r -u 5000 -g mail -d /var/vmail -s /sbin/nologin -c "Virtual Mail U
 RUN mkdir -p /etc/ssl/certs/server
 RUN mkdir -p /etc/ssl/certs/letsencrypt
 
+
 # Copy configuration files
-COPY main.cf /etc/postfix/main.cf
-COPY master.cf /etc/postfix/master.cf
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY dovecot.conf /etc/dovecot/dovecot.conf
+COPY build/mail/main.cf /etc/postfix/main.cf
+COPY build/mail/master.cf /etc/postfix/master.cf
+COPY build/mail/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY build/mail/dovecot.conf /etc/dovecot/dovecot.conf
 
 
-# Postfix virtual user configuration
-RUN echo "{{ domain }} {{ domain }}" > /etc/postfix/virtual_mailbox_domains \
-    && echo "test@{{ domain }}    {{ domain }}/test/" > /etc/postfix/virtual_mailbox_maps \
-    && echo "admin@{{ domain }}   {{ domain }}/admin/" >> /etc/postfix/virtual_mailbox_maps \
-    && cp /etc/postfix/virtual_mailbox_maps /etc/postfix/vmailbox
+# Copy the mail server management scripts
+COPY actions /usr/local/actions
 
-# Generate Postfix lookup tables
-RUN postmap /etc/postfix/virtual_mailbox_domains \
-    && postmap /etc/postfix/virtual_mailbox_maps \
-    && postmap /etc/postfix/vmailbox
+# Make now_mail.py executable and create a symlink
+RUN chmod +x /usr/local/actions/now_mail.py \
+    && ln -s /usr/local/actions/now_mail.py /usr/local/bin/now_mail
 
-# Create mailbox directories for test users
-RUN mkdir -p /var/vmail/{{ domain }}/test \
-    && mkdir -p /var/vmail/{{ domain }}/admin \
-    && chown -R vmail:mail /var/vmail
-
-# Create test user passwords
-RUN echo "test@{{ domain }}:{PLAIN}testpass123" > /etc/dovecot/passwd \
-    && echo "admin@{{ domain }}:{PLAIN}adminpass123" >> /etc/dovecot/passwd \
-    && chmod 644 /etc/dovecot/passwd
-
+# Create the admin and test users
+RUN now_mail create_user --username admin --password adminpass123 --domain {{ domain }}
+RUN now_mail create_user --username testuser --password testpass123 --domain {{ domain }}
 
 # Expose SMTP port
 EXPOSE 25 587

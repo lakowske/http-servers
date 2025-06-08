@@ -71,11 +71,23 @@ class PodmanClientService:
         with self.get_client() as client:
             return client.containers.list()
 
-    def build_image(
-        self, path: str, dockerfile: str, tag: str
-    ) -> Tuple[str, List[str]]:
+    def build_image(self, path: str, dockerfile: str, tag: str) -> Tuple[str, List[str]]:
         """
-        Build an image.
+        Build a container image from a specified path and Dockerfile.
+
+        Args:
+            path (str): The path to the build context (directory containing the Dockerfile and other resources).
+            dockerfile (str): The name of the Dockerfile to use for building the image.
+            tag (str): The tag to assign to the built image.
+
+            Tuple[str, List[str]]: The image ID and a list of build output logs.
+
+        Raises:
+            podman.errors.BuildError: If the image build fails.
+            podman.errors.APIError: If there is a communication error with the Podman service.
+
+        Example:
+            image_id, logs = build_image('/path/to/context', 'Dockerfile', 'my-image:latest')        Build an image.
 
         This method builds an image using the client obtained from the
         `get_client` method.
@@ -84,9 +96,7 @@ class PodmanClientService:
             list: A list of image objects.
         """
         with self.get_client() as client:
-            return client.images.build(
-                path=path, dockerfile=dockerfile, tag=tag
-            )
+            return client.images.build(path=path, dockerfile=dockerfile, tag=tag)
 
     def rm_image(self, image_id: str):
         """

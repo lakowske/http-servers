@@ -4,14 +4,14 @@ This module contains functions for generating and managing SSL certificates.
 
 import logging
 import time
+import os
+from datetime import datetime, timedelta, timezone
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from datetime import datetime, timedelta, timezone
 from certbot import main as certbot_main
 from http_server.health_check import healthcheck
-import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,6 +1,7 @@
 """
-A service to interact with letsencrypt's certbot client.  Performs common operations so that
-the user does not have to manage configuration or run certbot commands directly.
+A service to interact with letsencrypt's certbot client.  Performs common
+operations so that the user does not have to manage configuration or run
+certbot commands directly.
 """
 
 import logging
@@ -20,8 +21,9 @@ logger = logging.getLogger(__name__)
 
 class CertbotService:
     """
-    A service to interact with letsencrypt's certbot client.  Performs common operations so that
-    the user does not have to manage configuration or run certbot commands directly.
+    A service to interact with letsencrypt's certbot client.  Performs common
+    operations so that the user does not have to manage configuration or run
+    certbot commands directly.
     """
 
     def __init__(self, config_service: ConfigService):

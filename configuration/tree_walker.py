@@ -6,9 +6,12 @@ from configuration.app import Config
 from configuration.tree_nodes import (
     FSTree,
     TemplateTree,
+    Copy,
     Htpasswd,
     Passwd,
     SelfSignedCerts,
+    DovecotEmailMap,
+    DovecotPasswd,
 )
 
 
@@ -48,12 +51,18 @@ class TreeWalker:
         """Process a node based on its type"""
         if isinstance(node, TemplateTree):
             return self.call_method("on_template_tree", node, context)
+        elif isinstance(node, Copy):
+            return self.call_method("on_copy", node, context)
         elif isinstance(node, Htpasswd):
             return self.call_method("on_htpasswd", node, context)
         elif isinstance(node, Passwd):
             return self.call_method("on_passwd", node, context)
         elif isinstance(node, SelfSignedCerts):
             return self.call_method("on_self_signed_certs", node, context)
+        elif isinstance(node, DovecotEmailMap):
+            return self.call_method("on_dovecot_email_map", node, context)
+        elif isinstance(node, DovecotPasswd):
+            return self.call_method("on_dovecot_passwd", node, context)
         elif isinstance(node, FSTree):
             return self.call_method("on_fs_tree", node, context)
         else:
@@ -131,11 +140,28 @@ class TreeRenderer(TreeWalker):
             **kwargs,
         )
 
+    def on_copy(self, node: Copy, context: Config):
+        """Handle a Copy node"""
+        # kwargs = context.to_kwargs()
+        return node.render(context.build.build_root)
+
     def on_htpasswd(self, node: Htpasswd, context: Config):
         """Handle an Htpasswd node"""
         return node.render(context.build.build_root, users=context.admin.users)
 
     on_passwd = on_htpasswd
+
+    def on_dovecot_email_map(self, node: DovecotEmailMap, context: Config):
+        """Handle a DovecotEmailMap node"""
+        return node.render(
+            context.build.build_root, admin_context=context.admin
+        )
+
+    def on_dovecot_passwd(self, node: DovecotPasswd, context: Config):
+        """Handle a DovecotPasswd node"""
+        return node.render(
+            context.build.build_root, admin_context=context.admin
+        )
 
     def on_self_signed_certs(self, node: SelfSignedCerts, context: Config):
         """Handle an SelfSignedCerts node"""

@@ -24,7 +24,9 @@ class AdminContext(BaseModel):
     locality: str = "Sun Prairie"
     organization: str = "Acme Inc"
     users: List[UserCredential] = [
-        UserCredential(username="git", password=random_password(20))
+        UserCredential(username="git", password=random_password(20)),
+        UserCredential(username="admin", password=random_password(20)),
+        UserCredential(username="test", password=random_password(20)),
     ]
 
 
@@ -130,6 +132,29 @@ class TemplateTree(FSTree):
         return abs_path
 
 
+class Copy(FSTree):
+    """A tree node that copies a file or directory"""
+
+    source_path: str
+
+    """The source path to copy from"""
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.is_dir = False
+
+    def render(self, build_root: str):
+        """Copy a file or directory to the build root"""
+        abs_path = self.make_path(build_root)
+        source_abs_path = os.path.abspath(self.source_path)
+        if os.path.isdir(source_abs_path):
+            shutil.copytree(source_abs_path, abs_path, dirs_exist_ok=True)
+        else:
+            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+            shutil.copy2(source_abs_path, abs_path)
+        return abs_path
+
+
 class Htpasswd(FSTree):
     """A tree node that represents an htpasswd file"""
 
@@ -196,6 +221,57 @@ class Passwd(FSTree):
                     UserCredential(username=username, password=password)
                 )
         return users
+
+
+class DovecotPasswd(FSTree):
+    """A tree node that represents a Dovecot passwd file"""
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.is_dir = False
+        self.cleanup = False
+
+    def render(
+        self,
+        build_root: str,
+        admin_context: AdminContext,
+    ):
+        """Render a template to a file"""
+        abs_path = self.make_path(build_root)
+        domain = admin_context.domain
+        users = admin_context.users
+        with open(abs_path, "w", encoding="utf-8") as file:
+            for user in users:
+                plain_password = (
+                    user.username + f"@{domain}:" + r"{PLAIN}" + user.password
+                )
+                file.write(plain_password + "\n")
+        return abs_path
+
+
+class DovecotEmailMap(FSTree):
+    """A tree node that represents a Dovecot email map file"""
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.is_dir = False
+        self.cleanup = False
+
+    def render(
+        self,
+        build_root: str,
+        admin_context: AdminContext,
+    ):
+        """Render a template to a file"""
+        abs_path = self.make_path(build_root)
+        domain = admin_context.domain
+        users = admin_context.users
+        with open(abs_path, "w", encoding="utf-8") as file:
+            for user in users:
+                file.write(
+                    f"{user.username}@{domain} {domain}/{user.username}/\n"
+                )
+        return abs_path
 
 
 class SelfSignedCerts(FSTree):
@@ -282,6 +358,11 @@ dovecot_conf_template = TemplateTree(
     template_path="dovecot.conf",
 )
 
+dovecot_email_map = DovecotEmailMap(name="virtual_mailbox_maps")
+dovecot_passwd = DovecotPasswd(name="passwd")
+
+now_mail = Copy(name="now_mail.py", source_path="./actions/now_mail.py")
+
 supervisord_conf_template = TemplateTree(
     name="supervisord.conf",
     template_path="supervisord.conf",
@@ -349,16 +430,14 @@ apache = FSTree(
 mail = FSTree(
     name="mail",
     children=[
-        FSTree(name="conf"),
-        FSTree(name="data"),
-        FSTree(name="logs"),
-        FSTree(name="run"),
-        FSTree(name="spool"),
         postfix_conf_template,
         postfix_master_template,
         dovecot_conf_template,
         supervisord_conf_template,
         dockerfile_mail_template,
+        dovecot_passwd,
+        dovecot_email_map,
+        now_mail,
     ],
 )
 
