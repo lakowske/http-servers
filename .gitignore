@@ -21,3 +21,6 @@ logs/
 
 # Ignore all coverage files
 .coverage
+.coverage.*
+coverage.xml
+htmlcov/

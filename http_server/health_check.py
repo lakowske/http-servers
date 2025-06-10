@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def healthcheck(domain, verify_ssl=False):
     """
     Perform a healthcheck on a domain by making HTTP and HTTPS requests.
-    
+
     Args:
         domain: The domain to check
         verify_ssl: Whether to verify SSL certificates (default False for self-signed certs)

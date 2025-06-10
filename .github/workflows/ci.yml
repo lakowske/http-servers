@@ -25,7 +25,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install coverage pytest-cov black
+        pip install coverage pytest-cov black isort
 
     - name: Lint with flake8
       run: |
@@ -37,6 +37,10 @@ jobs:
     - name: Check code formatting with black
       run: |
         python -m black --check --line-length=120 .
+
+    - name: Check import sorting with isort
+      run: |
+        python -m isort --check-only --profile=black --line-length=120 .
 
     - name: Run unit tests with coverage
       run: |
@@ -76,8 +80,8 @@ jobs:
 
     - name: Check for known security vulnerabilities
       run: |
-        python -m safety check --json --output safety-report.json || true
-        python -m safety check
+        python -m safety scan --json --output safety-report.json || true
+        python -m safety scan
 
   pre-commit:
     runs-on: ubuntu-latest
@@ -93,7 +97,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pre-commit
+        pip install pre-commit coverage pytest-cov safety
 
     - name: Run pre-commit hooks
       run: |

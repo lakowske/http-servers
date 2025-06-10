@@ -33,17 +33,17 @@ repos:
     hooks:
       - id: flake8
 
-  # Security scanning (disabled due to too many false positives)
-  # - repo: https://github.com/PyCQA/bandit
-  #   rev: 1.7.10
-  #   hooks:
-  #     - id: bandit
-  #       exclude: ^(tests/|build/|logs/)
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: [--exclude, "tests/,.venv/", --skip, "B101,B404,B603,B607,B105"]
 
   # Local hooks for project-specific checks
   - repo: local
     hooks:
-      # Fast unit tests (no container dependencies)
+      # Fast unit tests (lightweight for pre-commit)
       - id: unit-tests
         name: Unit Tests
         entry: python -m pytest
@@ -52,12 +52,21 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
 
-      # Configuration validation
+      # Configuration validation tests (lightweight for pre-commit)
       - id: config-validation
         name: Config Validation Tests
         entry: python -m pytest
         language: system
         args: [tests/config/, -x, --tb=short, -q]
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Security vulnerability check (mirrors CI security job)
+      - id: safety-check
+        name: Security Vulnerability Check
+        entry: python -m safety
+        language: system
+        args: [check, --ignore, "76170,75180,76378,74735,75976,76903,47273"]
         pass_filenames: false
         stages: [pre-commit]
 
