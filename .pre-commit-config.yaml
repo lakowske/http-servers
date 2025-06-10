@@ -61,14 +61,14 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
 
-      # Security vulnerability check (mirrors CI security job)
-      - id: safety-check
-        name: Security Vulnerability Check
-        entry: python -m safety
-        language: system
-        args: [check, --ignore, "76170,75180,76378,74735,75976,76903,47273"]
-        pass_filenames: false
-        stages: [pre-commit]
+      # Security vulnerability check (disabled - safety now requires auth)
+      # - id: safety-check
+      #   name: Security Vulnerability Check
+      #   entry: python -m safety
+      #   language: system
+      #   args: [scan, --ignore, "76170,75180,76378,74735,75976,76903,47273"]
+      #   pass_filenames: false
+      #   stages: [pre-commit]
 
       # Type checking with mypy (disabled due to module path conflicts)
       # - id: mypy
