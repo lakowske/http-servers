@@ -4,8 +4,8 @@ HTTP and HTTPS requests.
 """
 
 import logging
-import requests
 
+import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

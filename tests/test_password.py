@@ -5,13 +5,8 @@ the shannon entropy calculation and password strength classification.
 """
 
 import unittest
-from auth.password import (
-    get_char_sets,
-    shannon_entropy,
-    get_entropy,
-    get_password_strength,
-    random_password,
-)
+
+from auth.password import get_char_sets, get_entropy, get_password_strength, random_password, shannon_entropy
 
 
 class TestPasswordModule(unittest.TestCase):
@@ -26,10 +21,12 @@ class TestPasswordModule(unittest.TestCase):
             Tests the shannon_entropy function to ensure it correctly calculates the Shannon entropy of a given string.
 
         test_get_entropy(self):
-            Tests the get_entropy function to ensure it correctly calculates the entropy of a given string, considering character sets and common patterns.
+            Tests the get_entropy function to ensure it correctly calculates the entropy of a given string,
+            considering character sets and common patterns.
 
         test_get_password_strength(self):
-            Tests the get_password_strength function to ensure it correctly categorizes password strength based on entropy values.
+            Tests the get_password_strength function to ensure it correctly categorizes password strength
+            based on entropy values.
     """
 
     def test_get_char_sets(self):
@@ -46,9 +43,7 @@ class TestPasswordModule(unittest.TestCase):
         self.assertEqual(get_char_sets("ABC"), {"uppercase"})
         self.assertEqual(get_char_sets("123"), {"digits"})
         self.assertEqual(get_char_sets("!@#"), {"special"})
-        self.assertEqual(
-            get_char_sets("aA1!"), {"lowercase", "uppercase", "digits", "special"}
-        )
+        self.assertEqual(get_char_sets("aA1!"), {"lowercase", "uppercase", "digits", "special"})
 
     def test_shannon_entropy(self):
         """
@@ -72,9 +67,7 @@ class TestPasswordModule(unittest.TestCase):
         self.assertLess(get_entropy("abcd"), 25.0)
         self.assertLess(get_entropy("aA1!"), 50.0)
         self.assertLess(get_entropy("password"), 25.0)
-        self.assertGreater(
-            get_entropy(random_password(20)), 100
-        )  # Penalized for common pattern
+        self.assertGreater(get_entropy(random_password(20)), 100)  # Penalized for common pattern
 
     def test_get_password_strength(self):
         self.assertEqual(get_password_strength(0), "Very Weak")

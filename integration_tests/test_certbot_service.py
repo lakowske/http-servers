@@ -29,9 +29,7 @@ def test_update_apache_configs_to_letsencrypt():
     new certificate.
     """
     certbot = container.certbot_service()
-    success = certbot.update_apache_configs_to_letsencrypt(
-        config_service.config.admin.domain
-    )
+    success = certbot.update_apache_configs_to_letsencrypt(config_service.config.admin.domain)
     assert success
 
 
@@ -41,9 +39,7 @@ def test_update_dovecot_configs_to_letsencrypt():
     new certificate.
     """
     certbot = container.certbot_service()
-    success = certbot.update_dovecot_configs_to_letsencrypt(
-        config_service.config.admin.domain
-    )
+    success = certbot.update_dovecot_configs_to_letsencrypt(config_service.config.admin.domain)
     assert success
 
 
@@ -53,7 +49,5 @@ def test_update_postfix_configs_to_letsencrypt():
     new certificate.
     """
     certbot = container.certbot_service()
-    success = certbot.update_postfix_configs_to_letsencrypt(
-        config_service.config.admin.domain
-    )
+    success = certbot.update_postfix_configs_to_letsencrypt(config_service.config.admin.domain)
     assert success

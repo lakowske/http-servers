@@ -2,39 +2,40 @@
 Simplified configuration tree rendering without visitor pattern complexity.
 """
 
-from typing import List, Any
+from typing import Any, List
+
 from configuration.app import Config
 from configuration.tree_nodes import (
-    FSTree,
-    TemplateTree,
     Copy,
+    DovecotEmailMap,
+    DovecotPasswd,
+    FSTree,
     Htpasswd,
     Passwd,
     SelfSignedCerts,
-    DovecotEmailMap,
-    DovecotPasswd,
+    TemplateTree,
 )
 
 
 def render_config_tree(node: FSTree, context: Config) -> List[Any]:
     """
     Render configuration tree to filesystem using direct type checking.
-    
+
     Replaces the complex visitor pattern with simple isinstance checks.
     Maintains identical functionality to TreeRenderer.walk().
-    
+
     Args:
         node: The FSTree node to render
         context: The configuration context
-        
+
     Returns:
         List of render results
     """
     results = []
-    
+
     # Process current node based on its type
     result = None
-    
+
     if isinstance(node, TemplateTree):
         kwargs = context.to_kwargs()
         result = node.render(**kwargs)
@@ -51,12 +52,12 @@ def render_config_tree(node: FSTree, context: Config) -> List[Any]:
     elif isinstance(node, FSTree):
         # Base FSTree case - just create the directory
         result = node.make_path(context.build.build_root)
-    
+
     if result:
         results.append(result)
-    
+
     # Process children recursively
     for child in node.children:
         results.extend(render_config_tree(child, context))
-    
+
     return results

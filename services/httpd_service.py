@@ -3,11 +3,11 @@ This module provides a service for interacting with a Podman httpd container.
 """
 
 from podman.domain.containers import Container
+
+from configuration.app import WORKSPACE
 from services.config_service import ConfigService
 from services.podman_client_service import PodmanClientService
 from services.podman_service import PodmanService
-from configuration.app import WORKSPACE
-
 
 LATEST_IMAGE = "httpd-nexus:latest"
 DEFAULT_HTTPD_CONTAINER_NAME = "httpd-nexus"

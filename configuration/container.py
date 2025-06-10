@@ -3,19 +3,18 @@ This module provides a services for testing and application use.
 """
 
 from dependency_injector import containers, providers
+
+from configuration.app import Config, ImapConfig, PodmanConfig, SmtpConfig
 from configuration.tree_nodes import AdminContext
-from configuration.app import PodmanConfig, Config
-from configuration.app import ImapConfig
-from configuration.app import SmtpConfig
-from services.podman_client_service import PodmanClientService
-from services.config_service import ConfigService
-from services.httpd_service import HttpdService
-from services.mail_service import MailService
-from services.certbot_service import CertbotService
-from services.git_service import GitService
-from services.user_service import UserService
 from mail.imap import ImapService
 from mail.smtp import SmtpService
+from services.certbot_service import CertbotService
+from services.config_service import ConfigService
+from services.git_service import GitService
+from services.httpd_service import HttpdService
+from services.mail_service import MailService
+from services.podman_client_service import PodmanClientService
+from services.user_service import UserService
 
 
 def create_imap_service(config_service: ConfigService) -> ImapService:
@@ -61,8 +60,6 @@ def create_config_service() -> ConfigService:
     return ConfigService(config=config)
 
 
-
-
 class ServerContainer(containers.DeclarativeContainer):
     """
     Dependency injection container for configuration loading
@@ -72,21 +69,13 @@ class ServerContainer(containers.DeclarativeContainer):
 
     config_service = providers.Singleton(create_config_service)
 
-    podman_config = providers.Singleton(
-        to_podman_config, config_service=config_service
-    )
+    podman_config = providers.Singleton(to_podman_config, config_service=config_service)
 
-    imap_config = providers.Factory(
-        to_imap_config, config_service=config_service
-    )
+    imap_config = providers.Factory(to_imap_config, config_service=config_service)
 
-    smtp_config = providers.Factory(
-        to_smtp_config, config_service=config_service
-    )
+    smtp_config = providers.Factory(to_smtp_config, config_service=config_service)
 
-    podman_service = providers.Factory(
-        PodmanClientService, podman_config=podman_config
-    )
+    podman_service = providers.Factory(PodmanClientService, podman_config=podman_config)
 
     imap_service = providers.Singleton(ImapService, imap_config=imap_config)
 
@@ -104,15 +93,8 @@ class ServerContainer(containers.DeclarativeContainer):
         config_service=config_service,
     )
 
-    certbot_service = providers.Singleton(
-        CertbotService, config_service=config_service
-    )
+    certbot_service = providers.Singleton(CertbotService, config_service=config_service)
 
-    git_service = providers.Singleton(
-        GitService, config_service=config_service
-    )
+    git_service = providers.Singleton(GitService, config_service=config_service)
 
-    user_service = providers.Singleton(
-        UserService, config_service=config_service
-    )
-
+    user_service = providers.Singleton(UserService, config_service=config_service)

@@ -2,13 +2,13 @@
 This module provides a function to send an email using the SMTP server.
 """
 
-from typing import Optional
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
+from email.mime.text import MIMEText
+from typing import Optional
 
 from pydantic import BaseModel
+
 from configuration.app import SmtpConfig
 
 

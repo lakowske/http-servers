@@ -3,8 +3,10 @@ This module contains the tests for the container module.
 """
 
 import unittest
+
 import podman
-from dependency_injector.wiring import inject, Provide
+from dependency_injector.wiring import Provide, inject
+
 from configuration.container import ServerContainer
 from services.config_service import ConfigService
 from services.podman_client_service import PodmanClientService
@@ -12,9 +14,7 @@ from services.podman_client_service import PodmanClientService
 
 @inject
 def create_podman_client(
-    podman_service: PodmanClientService = Provide[
-        ServerContainer.podman_service
-    ],
+    podman_service: PodmanClientService = Provide[ServerContainer.podman_service],
 ) -> podman.PodmanClient:
     """A simple injection function to create a Podman client."""
     return podman_service.get_client()
@@ -51,9 +51,7 @@ class TestContainer(unittest.TestCase):
 
         # Assert
         self.assertIsNotNone(podman_config)
-        self.assertEqual(
-            podman_config.socket_url, "unix:///var/run/podman/podman.sock"
-        )
+        self.assertEqual(podman_config.socket_url, "unix:///var/run/podman/podman.sock")
         self.assertEqual(podman_config.timeout, 30)
         self.assertTrue(podman_config.tls_verify)
 

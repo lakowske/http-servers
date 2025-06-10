@@ -4,15 +4,15 @@ This module provides functions to evaluate the strength and entropy of passwords
 Functions:
 - get_char_sets(password: str) -> Set[str]: Returns the character sets used in the password.
 - shannon_entropy(password: str) -> float: Calculates the Shannon entropy of the password string.
-- get_entropy(password: str) -> float: Calculates the password entropy considering length, 
+- get_entropy(password: str) -> float: Calculates the password entropy considering length,
   character set complexity, Shannon entropy, and common patterns.
-- get_password_strength(entropy: float) -> str: Returns the password strength classification 
+- get_password_strength(entropy: float) -> str: Returns the password strength classification
   based on entropy.
 """
 
-import re
 import math
 import random
+import re
 from collections import Counter
 from typing import Set
 

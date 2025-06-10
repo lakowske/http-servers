@@ -1,0 +1,5 @@
+[bandit]
+# Bandit configuration file
+skips = B101,B404,B603,B607
+exclude_dirs = tests,build,logs
+severity = medium

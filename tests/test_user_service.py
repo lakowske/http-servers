@@ -2,8 +2,8 @@
 A test for the user service.
 """
 
-from configuration.container import ServerContainer
 from auth.auth import UserCredential
+from configuration.container import ServerContainer
 
 container = ServerContainer()
 config_service = container.config_service()

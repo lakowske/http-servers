@@ -2,11 +2,12 @@
 Provides user services, like finding users and creating users.
 """
 
-from typing import List, Set, Optional
-from services.config_service import ConfigService
-from configuration.tree_nodes import Htpasswd, Passwd, git_auth, passwd
+from typing import List, Optional, Set
+
 from auth.auth import UserCredential
 from auth.password import random_password
+from configuration.tree_nodes import Htpasswd, Passwd, git_auth, passwd
+from services.config_service import ConfigService
 
 
 class UserService:
@@ -62,9 +63,7 @@ class UserService:
         """
         Create or read the users from the filesystem.
         """
-        if not self.passwd.exists(self.build_root) or not self.htpasswd.exists(
-            self.build_root
-        ):
+        if not self.passwd.exists(self.build_root) or not self.htpasswd.exists(self.build_root):
             self.create()
 
         self.read()
@@ -120,4 +119,3 @@ class UserService:
         user.password = random_password(20)
         self.update_user(user)
         return user.password
-

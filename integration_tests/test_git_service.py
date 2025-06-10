@@ -5,7 +5,6 @@ This module contains tests for the git_service module.
 from configuration.container import ServerContainer
 from services.config_service import ConfigService
 
-
 container = ServerContainer()
 config_service: ConfigService = container.config_service()
 config_service.load_yaml_config("secrets/config.yaml")

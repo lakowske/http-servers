@@ -4,6 +4,7 @@ available.
 """
 
 from IPython import start_ipython
+
 from configuration.container import ServerContainer
 
 container = ServerContainer()

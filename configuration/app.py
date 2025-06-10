@@ -4,14 +4,10 @@ This module contains the configuration classes for the server.
 
 import os
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
-from configuration.tree_nodes import (
-    FSTree,
-    AdminContext,
-    container_paths,
-    build_tree,
-)
+from configuration.tree_nodes import AdminContext, FSTree, build_tree, container_paths
 
 # Create an absolute workspace directory variable
 MODULE = os.path.dirname(os.path.abspath(__file__))
@@ -29,26 +25,16 @@ class PodmanConfig(BaseModel):
         cert_path (Optional[str]): The path to the TLS certificates, if any.
     """
 
-    socket_url: Optional[str] = Field(
-        default=None, description="Path to Podman socket"
-    )
-    timeout: Optional[int] = Field(
-        default=30, description="Timeout value for Podman operations"
-    )
-    tls_verify: Optional[bool] = Field(
-        default=False, description="Verify TLS certificates"
-    )
-    cert_path: Optional[str] = Field(
-        default=None, description="Path to TLS certificates"
-    )
+    socket_url: Optional[str] = Field(default=None, description="Path to Podman socket")
+    timeout: Optional[int] = Field(default=30, description="Timeout value for Podman operations")
+    tls_verify: Optional[bool] = Field(default=False, description="Verify TLS certificates")
+    cert_path: Optional[str] = Field(default=None, description="Path to TLS certificates")
 
 
 class Runtime(BaseModel):
     """Runtime is a configuration class for the server runtime"""
 
-    withinContainer: bool = (
-        False  # the app is running within the httpd container, or on the host
-    )
+    withinContainer: bool = False  # the app is running within the httpd container, or on the host
 
 
 class BuildContext(BaseModel):
@@ -85,9 +71,7 @@ class HttpReverseProxy(BaseModel):
     """
 
     url: str  # The URL to match (e.g. /api/login, /app/email, etc...)
-    backend: (
-        str  # The URL to forward the request to (e.g. http://localhost:8080)
-    )
+    backend: str  # The URL to forward the request to (e.g. http://localhost:8080)
 
 
 class Config(BaseModel):

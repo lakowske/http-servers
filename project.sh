@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is used to setup and run the project. You can source this script 
+# This script is used to setup and run the project. You can source this script
 # to setup the bash environment for the project.
 
 # Function to create a virtual environment

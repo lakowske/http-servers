@@ -4,9 +4,10 @@ It can generate random passwords, store them in a file, and check if a given pas
 """
 
 import os
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List
+
 from passlib.apache import HtpasswdFile
 
 

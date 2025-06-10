@@ -5,8 +5,8 @@ services like HttpdService or MailService, which implement specific
 functionality.
 """
 
-from services.podman_client_service import PodmanClientService
 from services.config_service import ConfigService
+from services.podman_client_service import PodmanClientService
 
 
 class PodmanService:

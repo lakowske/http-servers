@@ -2,12 +2,12 @@
 This module provides an API for recieving emails over imap.
 """
 
-from typing import List, Tuple, Optional
-import logging
-import imaplib
 import email
+import imaplib
+import logging
 import time
 from email.header import decode_header
+from typing import List, Optional, Tuple
 
 from configuration.app import ImapConfig
 from mail.smtp import Email
@@ -106,9 +106,7 @@ class ImapService:
             logger.error(IMAP_ERROR_MSG, e)
             return e, None
 
-    def search(
-        self, search_criteria: str
-    ) -> Tuple[Optional[Exception], Optional[List[str]]]:
+    def search(self, search_criteria: str) -> Tuple[Optional[Exception], Optional[List[str]]]:
         """
         Search the IMAP server for emails.
         """
@@ -127,9 +125,7 @@ class ImapService:
             logger.error(IMAP_ERROR_MSG, e)
             return e, None
 
-    def fetch_email(
-        self, email_id: str
-    ) -> Tuple[Optional[Exception], Optional[ImapEmail]]:
+    def fetch_email(self, email_id: str) -> Tuple[Optional[Exception], Optional[ImapEmail]]:
         """
         Fetch an email from the IMAP server.
         """
@@ -155,9 +151,7 @@ class ImapService:
             result = self.mail.store(email_id, "+FLAGS", "\\Deleted")
             if result[0] != "OK":
                 logger.error("Failed to mark email for deletion: %s", result)
-                return Exception(
-                    f"Failed to mark email for deletion: {result}"
-                )
+                return Exception(f"Failed to mark email for deletion: {result}")
 
             # Permanently remove all emails marked for deletion
             result = self.mail.expunge()
@@ -205,9 +199,7 @@ class ImapService:
             emails.append(mail)
         return None, emails
 
-    def fetch_from(
-        self, from_email_address: str
-    ) -> Tuple[Optional[Exception], Optional[List[ImapEmail]]]:
+    def fetch_from(self, from_email_address: str) -> Tuple[Optional[Exception], Optional[List[ImapEmail]]]:
         """
         Fetch the first email from the IMAP server.
         """

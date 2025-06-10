@@ -5,13 +5,14 @@ deleting a user, and listing all users.
 """
 
 import json
+import logging
 import os
 import subprocess
-import logging
+
 from dynamic_cli import DynamicCLI
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 cli = DynamicCLI()
@@ -229,12 +230,12 @@ def create_user_mailbox(username, domain, mail_dir="/var/vmail"):
 
     try:
         os.makedirs(mailbox_path, exist_ok=True)
-        
+
         # Set correct ownership for mail delivery
         domain_path = os.path.join(mail_dir, domain)
-        subprocess.run(['chown', '-R', 'vmail:mail', domain_path], check=True)
-        subprocess.run(['chmod', '-R', '770', domain_path], check=True)
-        
+        subprocess.run(["chown", "-R", "vmail:mail", domain_path], check=True)
+        subprocess.run(["chmod", "-R", "770", domain_path], check=True)
+
         return True
     except OSError as e:
         print(f"Error creating mailbox: {e}")
@@ -401,12 +402,12 @@ def run_postmap(
     """
     try:
         # Copy the virtual mailbox maps to vmailbox file
-        subprocess.run(['cp', mailbox_map_file, vmailbox_file], check=True)
+        subprocess.run(["cp", mailbox_map_file, vmailbox_file], check=True)
         logger.info("Copied %s to %s", mailbox_map_file, vmailbox_file)
 
         # Run postmap on the specified files
         for file_path in [domain_file, mailbox_map_file, vmailbox_file]:
-            subprocess.run(['postmap', file_path], check=True, capture_output=True)
+            subprocess.run(["postmap", file_path], check=True, capture_output=True)
             logger.info("Successfully ran postmap on %s", file_path)
 
         return True
@@ -475,9 +476,9 @@ def load_unified_users(json_path: str) -> list:
             logger.warning("Users file %s does not exist", json_path)
             return []
 
-        with open(json_path, 'r', encoding='utf-8') as f:
+        with open(json_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            return data.get('users', [])
+            return data.get("users", [])
     except json.JSONDecodeError as e:
         logger.error("Invalid JSON in %s: %s", json_path, e)
         return []
@@ -487,7 +488,7 @@ def load_unified_users(json_path: str) -> list:
 
 
 @cli.register()
-def regenerate_all_configs(users_json_path: str = '/secrets/unified_users.json'):
+def regenerate_all_configs(users_json_path: str = "/secrets/unified_users.json"):
     """
     Regenerate all email configs from unified users JSON file.
     This replaces the functionality of regenerate_email_configs.py
@@ -496,25 +497,25 @@ def regenerate_all_configs(users_json_path: str = '/secrets/unified_users.json')
 
     # Load users
     users = load_unified_users(users_json_path)
-    email_users = [u for u in users if 'email' in u.get('enabled_services', [])]
+    email_users = [u for u in users if "email" in u.get("enabled_services", [])]
     logger.info("Found %d users with email access", len(email_users))
 
     # Clear existing config files
-    dovecot_path = '/etc/dovecot/passwd'
-    mailbox_maps_path = '/etc/postfix/virtual_mailbox_maps'
-    domains_path = '/etc/postfix/virtual_mailbox_domains'
+    dovecot_path = "/etc/dovecot/passwd"
+    mailbox_maps_path = "/etc/postfix/virtual_mailbox_maps"
+    domains_path = "/etc/postfix/virtual_mailbox_domains"
 
     try:
         # Clear files
         for file_path in [dovecot_path, mailbox_maps_path, domains_path]:
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, 'w', encoding='utf-8'):
+            with open(file_path, "w", encoding="utf-8"):
                 pass
 
         # Collect unique domains
         domains = set()
         for user in email_users:
-            domains.add(user['email_domain'])
+            domains.add(user["email_domain"])
 
         # Create domains first
         for domain in sorted(domains):
@@ -522,9 +523,9 @@ def regenerate_all_configs(users_json_path: str = '/secrets/unified_users.json')
 
         # Create users
         for user in email_users:
-            username = user['username']
-            password = user['password']
-            domain = user['email_domain']
+            username = user["username"]
+            password = user["password"]
+            domain = user["email_domain"]
 
             # Create dovecot user
             create_dovecot_user(username, password, domain, dovecot_path)
@@ -540,8 +541,8 @@ def regenerate_all_configs(users_json_path: str = '/secrets/unified_users.json')
             if os.path.exists(mailbox_path):
                 try:
                     domain_path = f"/var/vmail/{domain}"
-                    subprocess.run(['chown', '-R', 'vmail:mail', domain_path], check=True)
-                    subprocess.run(['chmod', '-R', '770', domain_path], check=True)
+                    subprocess.run(["chown", "-R", "vmail:mail", domain_path], check=True)
+                    subprocess.run(["chmod", "-R", "770", domain_path], check=True)
                 except subprocess.CalledProcessError as e:
                     logger.error("Failed to set ownership for %s: %s", mailbox_path, e)
 
@@ -563,7 +564,7 @@ def regenerate_all_configs(users_json_path: str = '/secrets/unified_users.json')
 def reload_mail_services():
     """Reload mail services via supervisord."""
     try:
-        subprocess.run(['supervisorctl', 'reload'], check=True, capture_output=True)
+        subprocess.run(["supervisorctl", "reload"], check=True, capture_output=True)
         logger.info("Mail services reloaded successfully")
         return True
     except subprocess.CalledProcessError as e:

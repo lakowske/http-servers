@@ -1,0 +1,71 @@
+repos:
+  # Code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=119]
+
+  # Import sorting
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile=black, --line-length=119]
+
+  # Basic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-json
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Python linting
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+
+  # Security scanning (disabled due to too many false positives)
+  # - repo: https://github.com/PyCQA/bandit
+  #   rev: 1.7.10
+  #   hooks:
+  #     - id: bandit
+  #       exclude: ^(tests/|build/|logs/)
+
+  # Local hooks for project-specific checks
+  - repo: local
+    hooks:
+      # Fast unit tests (no container dependencies)
+      - id: unit-tests
+        name: Unit Tests
+        entry: python -m pytest
+        language: system
+        args: [tests/unit/, -x, --tb=short, -q]
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Configuration validation
+      - id: config-validation
+        name: Config Validation Tests
+        entry: python -m pytest
+        language: system
+        args: [tests/config/, -x, --tb=short, -q]
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Type checking with mypy (disabled due to module path conflicts)
+      # - id: mypy
+      #   name: Type Checking
+      #   entry: python -m mypy
+      #   language: system
+      #   args: [--ignore-missing-imports, --no-strict-optional, --namespace-packages]
+      #   files: ^(actions|configuration|services|auth)/.*\.py$
+      #   stages: [pre-commit]

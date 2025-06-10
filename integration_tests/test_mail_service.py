@@ -5,9 +5,9 @@ server are running and that the configuration is correct.
 """
 
 import uuid
+
 from configuration.container import ServerContainer
 from mail.smtp import Email
-
 
 SECRETS_FILE = "secrets/config.yaml"
 container = ServerContainer()
@@ -94,10 +94,7 @@ def test_roundtrip_email():
         e, mails = imap.fetch_from(TEST_ADDRESS)
         if e is None and mails is not None:
             for some_mail in mails:
-                if (
-                    some_mail.subject
-                    == f"__Email Test {message_uuid} Round Trip"
-                ):
+                if some_mail.subject == f"__Email Test {message_uuid} Round Trip":
                     return some_mail
         return None
 

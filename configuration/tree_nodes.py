@@ -2,13 +2,15 @@
 This module contains the abstract nodes for the build process.
 """
 
+import copy
 import os
 import shutil
-import copy
 from typing import List, Optional
+
 from jinja2 import Environment, FileSystemLoader
-from pydantic import BaseModel, Field
 from passlib.apache import HtpasswdFile
+from pydantic import BaseModel, Field
+
 from auth.auth import UserCredential, to_htpasswd_file, to_passwd_file
 from auth.certificates import generate_self_signed_cert
 from auth.password import random_password
@@ -110,16 +112,12 @@ class TemplateTree(FSTree):
         super().__init__(**data)
         self.is_dir = False
 
-    def render(
-        self, build_root: str, template_root: Optional[str] = None, **kwargs
-    ):
+    def render(self, build_root: str, template_root: Optional[str] = None, **kwargs):
         """Render a template to a file"""
         abs_path = self.make_path(build_root)
         template_root = template_root or build_root
         template_path = f"{template_root}/{self.template_path}"
-        env = Environment(
-            loader=FileSystemLoader(os.path.dirname(template_path))
-        )
+        env = Environment(loader=FileSystemLoader(os.path.dirname(template_path)))
         template = env.get_template(os.path.basename(self.template_path))
         rendered_content = template.render(**kwargs)
         with open(abs_path, "w", encoding="utf-8") as file:
@@ -217,9 +215,7 @@ class Passwd(FSTree):
                 if line.strip() == "":
                     continue
                 username, password = line.strip().split(":")
-                users.append(
-                    UserCredential(username=username, password=password)
-                )
+                users.append(UserCredential(username=username, password=password))
         return users
 
 
@@ -242,9 +238,7 @@ class DovecotPasswd(FSTree):
         users = admin_context.users
         with open(abs_path, "w", encoding="utf-8") as file:
             for user in users:
-                plain_password = (
-                    user.username + f"@{domain}:" + r"{PLAIN}" + user.password
-                )
+                plain_password = user.username + f"@{domain}:" + r"{PLAIN}" + user.password
                 file.write(plain_password + "\n")
         return abs_path
 
@@ -268,9 +262,7 @@ class DovecotEmailMap(FSTree):
         users = admin_context.users
         with open(abs_path, "w", encoding="utf-8") as file:
             for user in users:
-                file.write(
-                    f"{user.username}@{domain} {domain}/{user.username}/\n"
-                )
+                file.write(f"{user.username}@{domain} {domain}/{user.username}/\n")
         return abs_path
 
 

@@ -5,10 +5,10 @@ Runs inside the HTTP container.
 """
 
 import json
-import os
-import sys
-import subprocess
 import logging
+import os
+import subprocess
+import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

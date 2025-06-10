@@ -3,9 +3,11 @@ Git service provides a service for interacting with a set of local git repositor
 """
 
 import os
+
 from git import Repo
-from services.config_service import ConfigService
+
 from configuration.app import WORKSPACE
+from services.config_service import ConfigService
 
 
 class GitService:
@@ -16,9 +18,7 @@ class GitService:
     def __init__(self, config_service: ConfigService):
         self.config_service = config_service
         self.build_paths = config_service.config.build_paths
-        self.git_repos_path = (
-            self.build_paths.get("apache").get("git").tree_root_path(WORKSPACE)
-        )
+        self.git_repos_path = self.build_paths.get("apache").get("git").tree_root_path(WORKSPACE)
 
     def create_bare_repo(self, repo_name):
         """

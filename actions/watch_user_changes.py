@@ -4,16 +4,15 @@ Script to watch for changes to unified users JSON file and trigger config regene
 Runs inside containers using inotify.
 """
 
+import logging
 import os
+import signal
+import subprocess
 import sys
 import time
-import subprocess
-import logging
-import signal
-from pathlib import Path
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -40,9 +39,9 @@ class UserFileWatcher:
             logger.info(f"Users file changed, triggering regeneration: {self.regenerate_script}")
 
             # Run the regeneration script
-            result = subprocess.run([
-                self.regenerate_script, self.users_file
-            ], capture_output=True, text=True, timeout=60)
+            result = subprocess.run(
+                [self.regenerate_script, self.users_file], capture_output=True, text=True, timeout=60
+            )
 
             if result.returncode == 0:
                 logger.info("Config regeneration completed successfully")
@@ -93,7 +92,7 @@ class UserFileWatcher:
                     # Check if this is our target file
                     if filename == watch_filename:
                         # Check for relevant events (modify, move, create)
-                        relevant_events = {'IN_MODIFY', 'IN_MOVED_TO', 'IN_CREATE', 'IN_CLOSE_WRITE'}
+                        relevant_events = {"IN_MODIFY", "IN_MOVED_TO", "IN_CREATE", "IN_CLOSE_WRITE"}
                         if any(event_type in relevant_events for event_type in type_names):
                             logger.info(f"Detected change to {filename}: {type_names}")
                             self._trigger_regeneration()
@@ -162,20 +161,22 @@ def main():
     """Main function."""
     if len(sys.argv) < 3:
         print("Usage: watch_user_changes.py <users_json_file> <regenerate_script>")
-        print("Example: watch_user_changes.py /secrets/unified_users.json /usr/local/actions/regenerate_http_configs.py")
+        print(
+            "Example: watch_user_changes.py /secrets/unified_users.json /usr/local/actions/regenerate_http_configs.py"
+        )
         sys.exit(1)
 
     users_file = sys.argv[1]
     regenerate_script = sys.argv[2]
 
     # Optional arguments
-    use_polling = '--polling' in sys.argv
+    use_polling = "--polling" in sys.argv
     poll_interval = 5
 
     # Get poll interval if specified
-    if '--interval' in sys.argv:
+    if "--interval" in sys.argv:
         try:
-            idx = sys.argv.index('--interval')
+            idx = sys.argv.index("--interval")
             poll_interval = int(sys.argv[idx + 1])
         except (IndexError, ValueError):
             logger.warning("Invalid --interval value, using default 5 seconds")
@@ -195,5 +196,5 @@ def main():
     watcher.start_watching(use_polling=use_polling, poll_interval=poll_interval)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

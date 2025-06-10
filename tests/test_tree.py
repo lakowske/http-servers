@@ -1,9 +1,7 @@
 import os
-from configuration.tree_nodes import (
-    build_tree,
-    container_paths,
-)
+
 from configuration.app import WORKSPACE
+from configuration.tree_nodes import build_tree, container_paths
 
 
 def test_build_tree():

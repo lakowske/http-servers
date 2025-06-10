@@ -1,7 +1,8 @@
-import yaml
+import argparse
 import os
 from pathlib import Path
-import argparse
+
+import yaml
 
 
 class ConfigurationLoader:
@@ -29,9 +30,7 @@ class ConfigurationLoader:
         parser = argparse.ArgumentParser()
         parser.add_argument("--podman-socket", help="Podman socket URL")
         parser.add_argument("--podman-timeout", type=int, help="Podman API timeout")
-        parser.add_argument(
-            "--podman-tls-verify", type=bool, help="Podman TLS verification"
-        )
+        parser.add_argument("--podman-tls-verify", type=bool, help="Podman TLS verification")
         parser.add_argument("--podman-cert-path", help="Podman certificate path")
 
         args, _ = parser.parse_known_args()

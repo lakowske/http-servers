@@ -1,14 +1,16 @@
-import unittest
 import os
+import unittest
+
 from passlib.apache import HtpasswdFile
+
 from auth.auth import (
     UserCredential,
-    to_htpasswd_file,
     from_htpasswd_file,
     from_htpasswd_str,
+    from_passwd_file,
+    to_htpasswd_file,
     to_htpasswd_str,
     to_passwd_file,
-    from_passwd_file,
 )
 
 

@@ -3,14 +3,16 @@ This module contains functions for generating and managing SSL certificates.
 """
 
 import logging
-import time
 import os
+import time
 from datetime import datetime, timedelta, timezone
+
+from certbot import main as certbot_main
 from cryptography import x509
-from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from certbot import main as certbot_main
+from cryptography.x509.oid import NameOID
+
 from http_server.health_check import healthcheck
 
 logging.basicConfig(level=logging.INFO)
@@ -159,9 +161,7 @@ def certbot_ssl(
         return False
 
 
-def update_apache_ssl_config_to_letsencrypt(
-    ssl_config_path: str, domains: list[str]
-):
+def update_apache_ssl_config_to_letsencrypt(ssl_config_path: str, domains: list[str]):
     """
     Update the Apache configuration to use the new certificate.
     """
@@ -172,10 +172,7 @@ def update_apache_ssl_config_to_letsencrypt(
     # Replace certificate paths
     config = config.replace(
         'SSLCertificateFile "/usr/local/apache2/conf/ssl/server-cert.pem"',
-        (
-            f"SSLCertificateFile "
-            f'"/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/fullchain.pem"'
-        ),
+        (f"SSLCertificateFile " f'"/usr/local/apache2/conf/letsencrypt/live/{domains[0]}/fullchain.pem"'),
     )
     config = config.replace(
         'SSLCertificateKeyFile "/usr/local/apache2/conf/ssl/server-key.pem"',
@@ -188,9 +185,7 @@ def update_apache_ssl_config_to_letsencrypt(
     return True
 
 
-def update_dovecot_ssl_config_to_letsencrypt(
-    dovecot_config_path: str, domains: list[str]
-):
+def update_dovecot_ssl_config_to_letsencrypt(dovecot_config_path: str, domains: list[str]):
     """
     Update the Dovecot configuration to use the new certificate.
     """
@@ -214,9 +209,7 @@ def update_dovecot_ssl_config_to_letsencrypt(
     return True
 
 
-def update_postfix_ssl_config_to_letsencrypt(
-    postfix_config_path: str, domains: list[str]
-):
+def update_postfix_ssl_config_to_letsencrypt(postfix_config_path: str, domains: list[str]):
     """
     Update the Postfix configuration to use the new certificate.
     """
@@ -227,10 +220,7 @@ def update_postfix_ssl_config_to_letsencrypt(
     # Replace certificate paths
     config = config.replace(
         "smtpd_tls_cert_file = /etc/ssl/certs/server/server-cert.pem",
-        (
-            f"smtpd_tls_cert_file = "
-            f"/etc/ssl/certs/letsencrypt/live/{domains[0]}/fullchain.pem"
-        ),
+        (f"smtpd_tls_cert_file = " f"/etc/ssl/certs/letsencrypt/live/{domains[0]}/fullchain.pem"),
     )
     config = config.replace(
         "smtpd_tls_key_file = /etc/ssl/certs/server/server-key.pem",

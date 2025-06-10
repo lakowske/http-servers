@@ -1,0 +1,50 @@
+[run]
+source = .
+omit = 
+    # Test files themselves
+    tests/*
+    **/test_*.py
+    
+    # Virtual environment
+    .venv/*
+    venv/*
+    
+    # Build artifacts
+    build/*
+    
+    # Configuration that doesn't need coverage
+    setup.py
+    conftest.py
+    
+    # Generated files
+    **/migrations/*
+
+[report]
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+    
+    # Don't complain about missing debug-only code
+    def __repr__
+    if self\.debug
+    
+    # Don't complain if tests don't hit defensive assertion code
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Don't complain if non-runnable code isn't run
+    if 0:
+    if __name__ == .__main__.:
+    
+    # Don't complain about abstract methods
+    @(abc\.)?abstractmethod
+
+precision = 2
+show_missing = True
+sort = Cover
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

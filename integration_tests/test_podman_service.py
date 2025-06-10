@@ -2,29 +2,28 @@
 Integration tests for the podman service.
 """
 
-from configuration.container import ServerContainer
 from actions.build import (
-    build_images,
-    build_httpd_image,
-    build_mail_image,
     build,
-    render,
+    build_httpd_image,
+    build_images,
+    build_mail_image,
+    create_git_repo_volume,
+    create_mail_volume,
+    create_test_repo,
+    health,
     list_containers,
+    reload_httpd,
+    remove_git_repo_volume,
+    remove_mail_volume,
+    render,
+    rm_httpd_container,
+    rm_httpd_image,
+    rm_mail_container,
+    rm_mail_image,
     run_httpd_container,
     run_mail_container,
-    health,
-    reload_httpd,
-    rm_httpd_container,
-    rm_mail_container,
-    rm_httpd_image,
-    rm_mail_image,
-    create_mail_volume,
-    remove_mail_volume,
-    create_git_repo_volume,
-    remove_git_repo_volume,
-    create_test_repo,
 )
-
+from configuration.container import ServerContainer
 
 container = ServerContainer()
 podman_service = container.podman_service()

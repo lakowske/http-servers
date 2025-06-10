@@ -9,12 +9,13 @@ It supports type conversion, default values, and required parameters.
 """
 
 import argparse
-import sys
 import inspect
+import sys
 import threading
 import time
-from typing import Any, Dict, Callable, get_type_hints
-from flask import Flask, request, jsonify
+from typing import Any, Callable, Dict, get_type_hints
+
+from flask import Flask, jsonify, request
 
 
 class DynamicCLI:
