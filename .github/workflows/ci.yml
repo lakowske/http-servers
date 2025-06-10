@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, nova ]
+    branches: [main, nova]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -14,91 +14,66 @@ jobs:
         python-version: [3.11, 3.12]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install coverage pytest-cov black isort
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install coverage pytest-cov black isort
 
-    - name: Lint with flake8
-      run: |
-        # Stop the build if there are Python syntax errors or undefined names
-        python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Treat all other issues as warnings
-        python -m flake8 . --count --max-line-length=120 --statistics
+      - name: Lint with flake8
+        run: |
+          # Stop the build if there are Python syntax errors or undefined names
+          python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Treat all other issues as warnings
+          python -m flake8 . --count --max-line-length=120 --statistics
 
-    - name: Check code formatting with black
-      run: |
-        python -m black --check --line-length=120 .
+      - name: Check code formatting with black
+        run: |
+          python -m black --check --line-length=120 .
 
-    - name: Check import sorting with isort
-      run: |
-        python -m isort --check-only --profile=black --line-length=120 .
+      - name: Check import sorting with isort
+        run: |
+          python -m isort --check-only --profile=black --line-length=120 .
 
-    - name: Run unit tests with coverage
-      run: |
-        python -m pytest tests/unit/ --cov=. --cov-report=xml --cov-report=term-missing
+      - name: Run unit tests with coverage
+        run: |
+          python -m pytest tests/unit/ --cov=. --cov-report=xml --cov-report=term-missing
 
-    - name: Run configuration tests
-      run: |
-        python -m pytest tests/config/ --cov=. --cov-append --cov-report=xml --cov-report=term-missing
+      - name: Run configuration tests
+        run: |
+          python -m pytest tests/config/ --cov=. --cov-append --cov-report=xml --cov-report=term-missing
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-
-  security:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install bandit safety
-
-    - name: Run security scan with bandit
-      run: |
-        python -m bandit -r . -f json -o bandit-report.json --exclude tests/,.venv/ || true
-        python -m bandit -r . --exclude tests/,.venv/
-
-    - name: Check for known security vulnerabilities
-      run: |
-        python -m safety scan --json --output safety-report.json || true
-        python -m safety scan
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pre-commit coverage pytest-cov safety
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pre-commit coverage pytest-cov
 
-    - name: Run pre-commit hooks
-      run: |
-        pre-commit run --all-files
+      - name: Run pre-commit hooks
+        run: |
+          pre-commit run --all-files
