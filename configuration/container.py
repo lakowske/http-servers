@@ -2,9 +2,7 @@
 This module provides a services for testing and application use.
 """
 
-from typing import List
 from dependency_injector import containers, providers
-from fastapi import FastAPI
 from configuration.tree_nodes import AdminContext
 from configuration.app import PodmanConfig, Config
 from configuration.app import ImapConfig
@@ -16,8 +14,6 @@ from services.mail_service import MailService
 from services.certbot_service import CertbotService
 from services.git_service import GitService
 from services.user_service import UserService
-from web.config_api import ConfigAPI
-from web.fastapi_provider import AppProvider, RouteProvider
 from mail.imap import ImapService
 from mail.smtp import SmtpService
 
@@ -65,16 +61,6 @@ def create_config_service() -> ConfigService:
     return ConfigService(config=config)
 
 
-def create_openapi_service(routers: List[RouteProvider]) -> FastAPI:
-    """
-    Creates a FastAPI application with a configuration object
-    """
-    app = FastAPI(title="Configurable API")
-
-    for router in routers:
-        app.include_router(router.get_routes())
-
-    return app
 
 
 class ServerContainer(containers.DeclarativeContainer):
@@ -130,8 +116,3 @@ class ServerContainer(containers.DeclarativeContainer):
         UserService, config_service=config_service
     )
 
-    config_api = providers.Singleton(ConfigAPI, config_service=config_service)
-
-    app_provider = providers.Singleton(
-        AppProvider, route_providers=[config_api]
-    )

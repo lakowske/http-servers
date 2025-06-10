@@ -15,7 +15,7 @@ from datetime import datetime
 from http_server.health_check import healthcheck
 from actions.shell import ipython_shell
 from actions.dynamic_cli import DynamicCLI
-from configuration.tree_walker import TreeRenderer
+from configuration.simple_renderer import render_config_tree
 from configuration.container import ServerContainer
 from services.httpd_service import (
     LATEST_IMAGE,
@@ -116,8 +116,7 @@ def render():
     """
     Render the configuration tree into a build directory
     """
-    walker = TreeRenderer()
-    walker.walk(config_service.config.build_paths, config_service.config)
+    render_config_tree(config_service.config.build_paths, config_service.config)
 
 
 @cli.register()
