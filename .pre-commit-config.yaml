@@ -27,6 +27,13 @@ repos:
       - id: mixed-line-ending
         args: [--fix=lf]
 
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [--format, parsable, --strict]
+
   # Python linting
   - repo: https://github.com/PyCQA/flake8
     rev: 7.1.1
