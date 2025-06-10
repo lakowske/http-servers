@@ -11,8 +11,8 @@ Functions:
 """
 
 import math
-import random
 import re
+import secrets
 from collections import Counter
 from typing import Set
 
@@ -27,13 +27,12 @@ def random_password(length: int = 20) -> str:
     Returns:
         str: The random password.
     """
-    random.seed()
     lowercase = "abcdefghijklmnopqrstuvwxyz"
     uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     numbers = "0123456789"
     special = "#$^*_-"
     chars = lowercase + uppercase + numbers + special
-    return "".join(random.choices(chars, k=length))
+    return "".join(secrets.choice(chars) for _ in range(length))
 
 
 def get_char_sets(password: str) -> Set[str]:

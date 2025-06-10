@@ -21,7 +21,8 @@ class TestAuth(unittest.TestCase):
             UserCredential(username="user1", password="password1"),
             UserCredential(username="user2", password="password2"),
         ]
-        self.file_path = "/tmp/test_htpasswd"
+        import tempfile
+        self.file_path = f"{tempfile.gettempdir()}/test_htpasswd"
 
     def tearDown(self):
         if os.path.exists(self.file_path):

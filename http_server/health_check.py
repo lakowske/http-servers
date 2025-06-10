@@ -11,9 +11,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def healthcheck(domain):
+def healthcheck(domain, verify_ssl=False):
     """
     Perform a healthcheck on a domain by making HTTP and HTTPS requests.
+    
+    Args:
+        domain: The domain to check
+        verify_ssl: Whether to verify SSL certificates (default False for self-signed certs)
     """
 
     http_url = f"http://{domain}"
@@ -28,7 +32,7 @@ def healthcheck(domain):
         return False
 
     try:
-        https_response = requests.get(https_url, verify=False, timeout=5)
+        https_response = requests.get(https_url, verify=verify_ssl, timeout=5)
         if https_response.status_code != 200:
             return False
     except requests.exceptions.ConnectionError as e:

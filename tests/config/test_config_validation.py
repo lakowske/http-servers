@@ -140,7 +140,8 @@ class TestConfigurationEdgeCases:
 
     def test_nonexistent_config_file(self):
         """Test handling of nonexistent config file"""
-        nonexistent_path = "/tmp/nonexistent_config.yaml"
+        import tempfile
+        nonexistent_path = f"{tempfile.gettempdir()}/nonexistent_config.yaml"
 
         with pytest.raises(FileNotFoundError):
             load_yaml_config(nonexistent_path)

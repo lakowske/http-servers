@@ -117,7 +117,7 @@ class TemplateTree(FSTree):
         abs_path = self.make_path(build_root)
         template_root = template_root or build_root
         template_path = f"{template_root}/{self.template_path}"
-        env = Environment(loader=FileSystemLoader(os.path.dirname(template_path)))
+        env = Environment(loader=FileSystemLoader(os.path.dirname(template_path)), autoescape=True)
         template = env.get_template(os.path.basename(self.template_path))
         rendered_content = template.render(**kwargs)
         with open(abs_path, "w", encoding="utf-8") as file:
