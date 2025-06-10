@@ -177,7 +177,7 @@ def main():
     sub_parser.add_argument("--max-events", type=int, default=10, help="Maximum events per batch (default: 10)")
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Show queue status")
+    subparsers.add_parser("status", help="Show queue status")
 
     # Cleanup command
     cleanup_parser = subparsers.add_parser("cleanup", help="Clean up old events")

@@ -11,7 +11,7 @@ import os
 import signal
 import time
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from .models import ChangeType, Event, EventType
 from .queue import EventQueue

@@ -7,11 +7,10 @@ inter-process communication without external dependencies.
 
 import json
 import logging
-import os
 import shutil
 import time
 from pathlib import Path
-from typing import Iterator, List, Optional
+from typing import List
 
 from .models import Event, EventResult, EventStatus
 
