@@ -18,3 +18,6 @@ email-secrets.yaml
 
 # Podman build logs
 logs/
+
+# Ignore all coverage files
+.coverage
