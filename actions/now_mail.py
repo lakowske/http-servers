@@ -1,4 +1,5 @@
 #!/usr/local/venv/bin/python
+
 """
 A python script to handle user mail operations, like creating a new user,
 deleting a user, and listing all users.
