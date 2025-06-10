@@ -68,6 +68,15 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
 
+      # Event system unit tests (fast tests with no external dependencies)
+      - id: event-tests
+        name: Event System Tests
+        entry: python -m pytest
+        language: system
+        args: [tests/events/, -m, "events_unit", -x, --tb=short, -q]
+        pass_filenames: false
+        stages: [pre-commit]
+
       # Security vulnerability check (disabled - safety now requires auth)
       # - id: safety-check
       #   name: Security Vulnerability Check
