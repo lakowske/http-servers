@@ -159,3 +159,6 @@ Before committing code, ensure:
 - Configuration changes can be applied without container restarts using `now reload`
 - All persistent data stored in named volumes (Git repos, mail, WebDAV)
 - Authentication uses Apache htpasswd format for compatibility
+
+# important-instruction-reminders
+NEVER include Claude Code advertising or attribution in git commits - keep commit messages clean and professional.
