@@ -11,8 +11,8 @@ import pytest
 # Add the project root to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from events.models import ChangeType, Event, EventResult, EventStatus, EventType
-from events.subscriber import EventSubscriber, create_config_subscriber
+from events.models import ChangeType, Event, EventResult, EventStatus, EventType  # noqa: E402
+from events.subscriber import EventSubscriber, create_config_subscriber  # noqa: E402
 
 
 @pytest.mark.events

@@ -11,12 +11,11 @@ from typing import Generator
 
 import pytest
 
-# Ensure we can import the events module
 project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from events import EventQueue
+from events import EventQueue  # noqa: E402
 
 
 @pytest.fixture

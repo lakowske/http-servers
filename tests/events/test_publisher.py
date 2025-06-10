@@ -11,8 +11,8 @@ import pytest
 # Add the project root to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from events.models import ChangeType, EventType
-from events.publisher import EventPublisher, FileWatcherConfig
+from events.models import ChangeType, EventType  # noqa: E402
+from events.publisher import EventPublisher, FileWatcherConfig  # noqa: E402
 
 
 @pytest.mark.events

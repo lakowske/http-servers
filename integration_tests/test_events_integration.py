@@ -7,7 +7,6 @@ and can communicate between host and container environments.
 
 import json
 import logging
-import os
 import shutil
 import subprocess
 import tempfile
@@ -175,7 +174,7 @@ class TestEventSystemContainerIntegration(unittest.TestCase):
         """Test event communication via shared volume."""
         with ContainerTestEnvironment() as env:
             # Create shared volume for events
-            events_volume = env.create_test_volume("events")
+            env.create_test_volume("events")
 
             # Create host directory structure
             host_events_dir = env.temp_dir / "events"
@@ -234,7 +233,7 @@ publisher.start_watching(use_polling=True, poll_interval=2)
             self.assertTrue(env.wait_for_container_ready(publisher_id))
 
             # Start publisher in background
-            pub_result = env.exec_in_container(publisher_id, ["python3", "-c", publisher_cmd[2]])
+            env.exec_in_container(publisher_id, ["python3", "-c", publisher_cmd[2]])
 
             # Give publisher time to start
             time.sleep(5)

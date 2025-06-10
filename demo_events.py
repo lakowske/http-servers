@@ -9,7 +9,6 @@ without requiring containers.
 import argparse
 import json
 import logging
-import os
 import tempfile
 import time
 from pathlib import Path

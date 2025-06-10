@@ -13,9 +13,9 @@ import pytest
 # Add the project root to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from events.models import ChangeType, Event, EventType
-from events.publisher import EventPublisher, FileWatcherConfig, create_config_publisher
-from events.subscriber import create_config_subscriber
+from events.models import ChangeType, Event, EventType  # noqa: E402
+from events.publisher import EventPublisher, FileWatcherConfig, create_config_publisher  # noqa: E402
+from events.subscriber import create_config_subscriber  # noqa: E402
 
 
 @pytest.mark.events
@@ -41,7 +41,7 @@ class TestEventSystemIntegration:
         publisher = EventPublisher(isolated_env.event_queue, [config])
 
         # Create initial config file
-        config_file = isolated_env.create_config_file()
+        isolated_env.create_config_file()
 
         # Scan for initial creation
         events = publisher._scan_for_changes(config)
@@ -220,9 +220,9 @@ class TestEventSystemIntegration:
     def test_config_publisher_integration(self, isolated_env):
         """Test the pre-configured publisher integration."""
         # Create standard config files
-        config_file = isolated_env.create_config_file()
-        template_file = isolated_env.create_template_file("httpd.conf")
-        user_file = isolated_env.create_user_file()
+        isolated_env.create_config_file()
+        isolated_env.create_template_file("httpd.conf")
+        isolated_env.create_user_file()
 
         # Use pre-configured publisher
         publisher = create_config_publisher(

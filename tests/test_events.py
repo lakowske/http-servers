@@ -6,14 +6,12 @@ enabling fast development and CI/CD testing.
 """
 
 import json
-import os
 import shutil
 import tempfile
 import time
 import unittest
 from pathlib import Path
-from typing import List
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from events.models import ChangeType, Event, EventResult, EventStatus, EventType
 from events.publisher import EventPublisher, FileWatcherConfig
@@ -330,7 +328,7 @@ class TestEventHandlers(unittest.TestCase):
         self.assertTrue(handler.can_handle(event))
 
         # Handle event
-        result = handler.handle(event)
+        handler.handle(event)
 
         # Verify callbacks were called
         mock_render_callback.assert_called_once()
@@ -472,7 +470,7 @@ class TestIntegration(unittest.TestCase):
             publisher = EventPublisher(env.event_queue, [config])
 
             # Create initial config file
-            config_file = env.create_config_file()
+            env.create_config_file()
 
             # Scan for initial creation
             events = publisher._scan_for_changes(config)

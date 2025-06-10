@@ -11,8 +11,8 @@ import pytest
 # Add the project root to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from events.models import ChangeType, Event, EventStatus, EventType
-from events.subscriber import ConfigChangeHandler, TemplateChangeHandler, UserChangeHandler
+from events.models import ChangeType, Event, EventStatus, EventType  # noqa: E402
+from events.subscriber import ConfigChangeHandler, TemplateChangeHandler, UserChangeHandler  # noqa: E402
 
 
 @pytest.mark.events
@@ -79,7 +79,7 @@ class TestEventHandlers:
         assert handler.can_handle(event)
 
         # Handle event
-        result = handler.handle(event)
+        handler.handle(event)
 
         # Verify callbacks were called
         mock_render_callback.assert_called_once()
