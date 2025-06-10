@@ -3,16 +3,11 @@ Unit tests for password generation and validation functions.
 Fast tests with no external dependencies.
 """
 
-import pytest
 import re
 
-from auth.password import (
-    random_password,
-    get_char_sets,
-    get_entropy,
-    get_password_strength,
-    shannon_entropy
-)
+import pytest
+
+from auth.password import get_char_sets, get_entropy, get_password_strength, random_password, shannon_entropy
 
 
 @pytest.mark.unit
@@ -33,10 +28,10 @@ class TestPasswordGeneration:
     def test_random_password_character_sets(self):
         """Test that passwords contain expected character sets"""
         password = random_password(20)
-        
+
         # Should contain letters and numbers at minimum
-        assert re.search(r'[a-zA-Z]', password), "Password should contain letters"
-        assert re.search(r'[0-9]', password), "Password should contain numbers"
+        assert re.search(r"[a-zA-Z]", password), "Password should contain letters"
+        assert re.search(r"[0-9]", password), "Password should contain numbers"
 
     def test_get_char_sets(self):
         """Test character set detection"""
@@ -48,7 +43,7 @@ class TestPasswordGeneration:
             ("Abc123!", ["lowercase", "uppercase", "digits", "special"]),
             ("", []),
         ]
-        
+
         for password, expected_sets in test_cases:
             result = get_char_sets(password)
             assert set(result) == set(expected_sets)
@@ -61,7 +56,7 @@ class TestPasswordGeneration:
             ("ab", 1.0),  # Two different characters
             ("abcd", 2.0),  # Four different characters
         ]
-        
+
         for text, expected_entropy in test_cases:
             result = shannon_entropy(text)
             assert abs(result - expected_entropy) < 0.01, f"Entropy for '{text}' should be ~{expected_entropy}"
@@ -71,10 +66,10 @@ class TestPasswordGeneration:
         # Longer passwords should have higher entropy
         short_password = "abc"
         long_password = "abcdefghijklmnop"
-        
+
         short_entropy = get_entropy(short_password)
         long_entropy = get_entropy(long_password)
-        
+
         assert isinstance(short_entropy, (int, float))
         assert isinstance(long_entropy, (int, float))
         assert long_entropy > short_entropy
@@ -90,13 +85,13 @@ class TestPasswordGeneration:
             (80, "Strong"),
             (120, "Very Strong"),
         ]
-        
+
         for entropy, expected_strength in test_cases:
             result = get_password_strength(entropy)
             assert result == expected_strength, f"Entropy {entropy} should be {expected_strength}"
 
 
-@pytest.mark.unit 
+@pytest.mark.unit
 class TestPasswordEdgeCases:
     """Test edge cases and error conditions"""
 
@@ -121,12 +116,12 @@ class TestPasswordEdgeCases:
     def test_unicode_handling(self):
         """Test functions handle unicode characters gracefully"""
         unicode_password = "café123🔒"
-        
+
         # Functions should not crash with unicode
         char_sets = get_char_sets(unicode_password)
         entropy = get_entropy(unicode_password)
         strength = get_password_strength(entropy)  # Pass entropy, not password
-        
+
         assert isinstance(char_sets, (list, set))
         assert isinstance(entropy, (int, float))
         assert isinstance(strength, str)

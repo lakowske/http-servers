@@ -5,7 +5,7 @@
 This project implements a comprehensive testing strategy with different test categories optimized for different use cases:
 
 - **🚀 Task Explorer**: For operational control (start/stop system)
-- **✅ Verification Tests**: For verifying live system health  
+- **✅ Verification Tests**: For verifying live system health
 - **⚡ Unit Tests**: For fast development feedback and git hooks
 - **🔧 Config Tests**: For configuration validation
 - **🏗️ Integration Tests**: For isolated feature testing (future)
@@ -59,7 +59,7 @@ pre-commit install
 
 ### What Runs on Each Commit
 1. **Code Formatting**: Black, isort
-2. **Linting**: Flake8 
+2. **Linting**: Flake8
 3. **Security**: Bandit scan
 4. **Basic Checks**: Trailing whitespace, YAML validity
 5. **Fast Tests**: Unit tests and config tests only
@@ -82,7 +82,7 @@ open htmlcov/index.html
 ```
 
 ### Current Coverage
-- **Overall**: ~56% 
+- **Overall**: ~56%
 - **auth/password.py**: 96% (well tested)
 - **configuration/app.py**: 95% (well tested)
 - **Opportunity**: Improve coverage in services/ and configuration/
@@ -159,7 +159,7 @@ tests/
 ├── verification/           # Safe verification of live system
 │   ├── test_system_health.py
 │   └── README.md
-├── unit/                   # Fast, isolated unit tests  
+├── unit/                   # Fast, isolated unit tests
 │   └── test_password_functions.py
 ├── config/                 # Configuration validation tests
 │   └── test_config_validation.py
@@ -176,7 +176,7 @@ tests/
 
 ### ✅ **Fast Feedback**
 - Unit tests: < 1 second
-- Pre-commit: < 10 seconds  
+- Pre-commit: < 10 seconds
 - CI: < 3 minutes
 
 ### ✅ **Comprehensive Coverage**

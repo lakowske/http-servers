@@ -7,7 +7,7 @@ These tests **verify** that your running system is working correctly without mak
 ## What These Tests Do
 
 - ✅ **READ-ONLY**: Never modify system state
-- ✅ **Safe**: Can run against live operational system  
+- ✅ **Safe**: Can run against live operational system
 - ✅ **Fast**: Complete in under 2 seconds
 - ✅ **Reliable**: Use graceful fallbacks for missing components
 
@@ -19,7 +19,7 @@ These tests **verify** that your running system is working correctly without mak
 - Validates configuration loads successfully
 - Confirms build directory is accessible
 
-### `TestContainerStatus` 
+### `TestContainerStatus`
 - Queries container status (doesn't start/stop)
 - Checks HTTP container if it exists
 - Checks mail container if it exists
@@ -62,7 +62,7 @@ This gives you confidence that your system changes worked correctly!
 
 As we build out the test suite, we'll add:
 - `tests/integration/` - Isolated tests with cleanup
-- `tests/config/` - Configuration file testing  
+- `tests/config/` - Configuration file testing
 - More verification tests for specific features
 
 But these basic health checks give you a solid foundation for verifying your system!

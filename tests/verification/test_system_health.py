@@ -136,7 +136,7 @@ class TestCommandLineInterface:
                 text=True,
                 timeout=30,
                 cwd=build_script.parent.parent,
-                check=False
+                check=False,
             )
             # Command should either succeed or fail gracefully
             expected_msg = f"Unexpected return code: {result.returncode}"
@@ -149,9 +149,10 @@ class TestCommandLineInterface:
     def test_python_environment_has_required_packages(self):
         """✅ Verify key packages are installed"""
         try:
-            import yaml  # pylint: disable=import-outside-toplevel
-            import pydantic  # pylint: disable=import-outside-toplevel
             import podman  # pylint: disable=import-outside-toplevel
+            import pydantic  # pylint: disable=import-outside-toplevel
+            import yaml  # pylint: disable=import-outside-toplevel
+
             # Just verify imports work
             assert yaml.__name__ == "yaml"
             assert pydantic.__name__ == "pydantic"
