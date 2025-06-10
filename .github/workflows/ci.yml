@@ -71,8 +71,8 @@ jobs:
 
     - name: Run security scan with bandit
       run: |
-        python -m bandit -r . -f json -o bandit-report.json || true
-        python -m bandit -r . --exclude tests/
+        python -m bandit -r . -f json -o bandit-report.json --exclude tests/,.venv/ || true
+        python -m bandit -r . --exclude tests/,.venv/
 
     - name: Check for known security vulnerabilities
       run: |

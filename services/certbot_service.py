@@ -46,7 +46,9 @@ class CertbotService:
                 .get("httpd-ssl.conf")
                 .tree_root_path(WORKSPACE)
             )
-        self.dovecot_ssl_config_path = self.config.build_paths.get("mail").get("dovecot.conf").tree_root_path(WORKSPACE)
+        self.dovecot_ssl_config_path = (
+            self.config.build_paths.get("mail").get("dovecot.conf").tree_root_path(WORKSPACE)
+        )
         self.postfix_ssl_config_path = self.config.build_paths.get("mail").get("main.cf").tree_root_path(WORKSPACE)
         self.email = self.config.admin.email
 
