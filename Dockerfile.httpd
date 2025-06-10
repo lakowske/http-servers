@@ -1,0 +1,45 @@
+FROM docker.io/library/httpd:2.4
+
+# Install system packages first (most cacheable layer)
+RUN apt-get update && apt-get install -y \
+    cron \
+    nano \
+    python3 \
+    python3-pip \
+    python3-venv \
+    apache2-utils \
+    inotify-tools \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install git and web-specific packages (separate layer)
+RUN apt-get update && apt-get install -y \
+    git \
+    gitweb \
+    python3-certbot-apache \
+    python3-passlib \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create directories for certbot
+RUN mkdir -p /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+
+# Create directory for git repos
+RUN mkdir -p /usr/local/apache2/git && chown -R www-data:www-data /usr/local/apache2/git
+
+# Create directory for webdav
+RUN mkdir -p /usr/local/apache2/webdav && chown -R www-data:www-data /usr/local/apache2/webdav
+
+# Create directory for webdav.lock
+RUN mkdir -p /usr/local/apache2/webdav.lock && chown -R www-data:www-data /usr/local/apache2/webdav.lock
+
+# Create directory for actions
+RUN mkdir -p /usr/local/actions
+
+# Create Python virtual environment for user management
+RUN python3 -m venv /usr/local/venv \
+    && /usr/local/venv/bin/pip install --upgrade pip \
+    && /usr/local/venv/bin/pip install --no-cache-dir passlib inotify
+
+# Create directories for SSL certificates
+RUN mkdir -p /usr/local/apache2/conf/ssl
+
+# Configuration and users will be managed at runtime via mounted volumes

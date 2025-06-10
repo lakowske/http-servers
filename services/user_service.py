@@ -2,7 +2,7 @@
 Provides user services, like finding users and creating users.
 """
 
-from typing import List
+from typing import List, Set, Optional
 from services.config_service import ConfigService
 from configuration.tree_nodes import Htpasswd, Passwd, git_auth, passwd
 from auth.auth import UserCredential
@@ -11,7 +11,7 @@ from auth.password import random_password
 
 class UserService:
     """
-    A service for managing users.
+    A service for managing users with unified HTTP and email support.
     """
 
     def __init__(self, config_service: ConfigService, sync_on_write: bool = True):
@@ -78,7 +78,7 @@ class UserService:
                 return user
         return None
 
-    def create_user(self, username: str, password: str):
+    def create_user(self, username: str, password: str, enabled_services: Optional[Set[str]] = None):
         """
         Create a user.
         """
@@ -120,3 +120,4 @@ class UserService:
         user.password = random_password(20)
         self.update_user(user)
         return user.password
+

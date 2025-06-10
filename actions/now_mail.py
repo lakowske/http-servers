@@ -4,8 +4,15 @@ A python script to handle user mail operations, like creating a new user,
 deleting a user, and listing all users.
 """
 
+import json
 import os
-from actions.dynamic_cli import DynamicCLI
+import subprocess
+import logging
+from dynamic_cli import DynamicCLI
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 cli = DynamicCLI()
 
@@ -207,7 +214,7 @@ def delete_user_mailbox_map(username, domain, mailbox_map_file="/etc/postfix/vir
 @cli.register()
 def create_user_mailbox(username, domain, mail_dir="/var/vmail"):
     """
-    Create a mailbox directory for the user.
+    Create a mailbox directory for the user with correct ownership.
 
     Args:
         username (str): The username of the user.
@@ -222,9 +229,18 @@ def create_user_mailbox(username, domain, mail_dir="/var/vmail"):
 
     try:
         os.makedirs(mailbox_path, exist_ok=True)
+        
+        # Set correct ownership for mail delivery
+        domain_path = os.path.join(mail_dir, domain)
+        subprocess.run(['chown', '-R', 'vmail:mail', domain_path], check=True)
+        subprocess.run(['chmod', '-R', '770', domain_path], check=True)
+        
         return True
     except OSError as e:
         print(f"Error creating mailbox: {e}")
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"Error setting mailbox ownership: {e}")
         return False
 
 
@@ -265,9 +281,8 @@ def delete_user_mailbox(username, domain, mail_dir="/var/vmail"):
         if os.path.exists(mailbox_path):
             os.rmdir(mailbox_path)
             return True
-        else:
-            print(f"Mailbox {mailbox_path} does not exist.")
-            return False
+        print(f"Mailbox {mailbox_path} does not exist.")
+        return False
     except OSError as e:
         print(f"Error deleting mailbox: {e}")
         return False
@@ -386,18 +401,20 @@ def run_postmap(
     """
     try:
         # Copy the virtual mailbox maps to vmailbox file
-        with open(vmailbox_file, "w", encoding="utf-8") as vfile:
-            with open(mailbox_map_file, "r", encoding="utf-8") as mfile:
-                for line in mfile:
-                    if line.strip():
-                        vfile.write(line)
+        subprocess.run(['cp', mailbox_map_file, vmailbox_file], check=True)
+        logger.info("Copied %s to %s", mailbox_map_file, vmailbox_file)
+
         # Run postmap on the specified files
-        os.system(f"postmap {domain_file}")
-        os.system(f"postmap {mailbox_map_file}")
-        os.system(f"postmap {vmailbox_file}")
+        for file_path in [domain_file, mailbox_map_file, vmailbox_file]:
+            subprocess.run(['postmap', file_path], check=True, capture_output=True)
+            logger.info("Successfully ran postmap on %s", file_path)
+
         return True
-    except OSError as e:
-        print(f"Error running postmap: {e}")
+    except subprocess.CalledProcessError as e:
+        logger.error("Error running postmap: %s", e)
+        return False
+    except FileNotFoundError:
+        logger.warning("postmap command not found")
         return False
 
 
@@ -433,10 +450,9 @@ def create_user(
     if has_user_mailbox_map(username, domain, mailbox_map_file):
         print(f"Mailbox map entry for {username}@{domain} already exists.")
         return False
-    else:
-        print(f"Creating mailbox map entry for {username}@{domain}.")
-        if not create_user_mailbox_map(username, domain, mailbox_map_file):
-            return False
+    print(f"Creating mailbox map entry for {username}@{domain}.")
+    if not create_user_mailbox_map(username, domain, mailbox_map_file):
+        return False
 
     if not has_user_mailbox(username, domain, mail_dir):
         print(f"Creating mailbox for {username}@{domain}.")
@@ -450,6 +466,112 @@ def create_user(
     print(f"Running postmap on {domain_file} and {mailbox_map_file} completed successfully.")
     print(f"User {username}@{domain} created successfully.")
     return True
+
+
+def load_unified_users(json_path: str) -> list:
+    """Load unified users from JSON file."""
+    try:
+        if not os.path.exists(json_path):
+            logger.warning("Users file %s does not exist", json_path)
+            return []
+
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return data.get('users', [])
+    except json.JSONDecodeError as e:
+        logger.error("Invalid JSON in %s: %s", json_path, e)
+        return []
+    except Exception as e:
+        logger.error("Error loading users from %s: %s", json_path, e)
+        return []
+
+
+@cli.register()
+def regenerate_all_configs(users_json_path: str = '/secrets/unified_users.json'):
+    """
+    Regenerate all email configs from unified users JSON file.
+    This replaces the functionality of regenerate_email_configs.py
+    """
+    logger.info("Starting email config regeneration")
+
+    # Load users
+    users = load_unified_users(users_json_path)
+    email_users = [u for u in users if 'email' in u.get('enabled_services', [])]
+    logger.info("Found %d users with email access", len(email_users))
+
+    # Clear existing config files
+    dovecot_path = '/etc/dovecot/passwd'
+    mailbox_maps_path = '/etc/postfix/virtual_mailbox_maps'
+    domains_path = '/etc/postfix/virtual_mailbox_domains'
+
+    try:
+        # Clear files
+        for file_path in [dovecot_path, mailbox_maps_path, domains_path]:
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w', encoding='utf-8'):
+                pass
+
+        # Collect unique domains
+        domains = set()
+        for user in email_users:
+            domains.add(user['email_domain'])
+
+        # Create domains first
+        for domain in sorted(domains):
+            create_domain(domain, domains_path)
+
+        # Create users
+        for user in email_users:
+            username = user['username']
+            password = user['password']
+            domain = user['email_domain']
+
+            # Create dovecot user
+            create_dovecot_user(username, password, domain, dovecot_path)
+
+            # Create mailbox map
+            create_user_mailbox_map(username, domain, mailbox_maps_path)
+
+            # Create mailbox directory
+            create_user_mailbox(username, domain)
+
+            # Set ownership
+            mailbox_path = f"/var/vmail/{domain}/{username}"
+            if os.path.exists(mailbox_path):
+                try:
+                    domain_path = f"/var/vmail/{domain}"
+                    subprocess.run(['chown', '-R', 'vmail:mail', domain_path], check=True)
+                    subprocess.run(['chmod', '-R', '770', domain_path], check=True)
+                except subprocess.CalledProcessError as e:
+                    logger.error("Failed to set ownership for %s: %s", mailbox_path, e)
+
+        # Run postmap
+        run_postmap(domains_path, mailbox_maps_path)
+
+        # Reload services
+        reload_mail_services()
+
+        logger.info("Email config regeneration completed")
+        return True
+
+    except Exception as e:
+        logger.error("Error during config regeneration: %s", e)
+        return False
+
+
+@cli.register()
+def reload_mail_services():
+    """Reload mail services via supervisord."""
+    try:
+        subprocess.run(['supervisorctl', 'reload'], check=True, capture_output=True)
+        logger.info("Mail services reloaded successfully")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error("Failed to reload mail services: %s", e)
+        return False
+    except FileNotFoundError:
+        logger.warning("supervisorctl not found, skipping service reload")
+        return False
 
 
 if __name__ == "__main__":

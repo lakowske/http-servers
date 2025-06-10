@@ -3,6 +3,8 @@ This module provides a service for interacting with Podman containers.
 """
 
 from typing import List, Tuple
+import subprocess
+import json
 import podman
 from podman.domain.containers import Container
 from configuration.app import PodmanConfig
@@ -73,7 +75,7 @@ class PodmanClientService:
 
     def build_image(self, path: str, dockerfile: str, tag: str) -> Tuple[str, List[str]]:
         """
-        Build a container image from a specified path and Dockerfile.
+        Build a container image from a specified path and Dockerfile using CLI for better caching.
 
         Args:
             path (str): The path to the build context (directory containing the Dockerfile and other resources).
@@ -83,20 +85,63 @@ class PodmanClientService:
             Tuple[str, List[str]]: The image ID and a list of build output logs.
 
         Raises:
-            podman.errors.BuildError: If the image build fails.
-            podman.errors.APIError: If there is a communication error with the Podman service.
+            subprocess.CalledProcessError: If the podman build command fails.
 
         Example:
-            image_id, logs = build_image('/path/to/context', 'Dockerfile', 'my-image:latest')        Build an image.
-
-        This method builds an image using the client obtained from the
-        `get_client` method.
-
-        Returns:
-            list: A list of image objects.
+            image_id, logs = build_image('/path/to/context', 'Dockerfile', 'my-image:latest')
         """
-        with self.get_client() as client:
-            return client.images.build(path=path, dockerfile=dockerfile, tag=tag)
+        # Use podman CLI for better caching behavior
+        cmd = [
+            'podman', 'build',
+            path,                    # Build context path
+            '-f', dockerfile,        # Dockerfile path
+            '-t', tag,              # Tag
+            '--layers',             # Enable intermediate layer caching
+            '--pull=false',         # Don't pull base images unless necessary
+        ]
+        
+        try:
+            # Run the command and capture output
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=True, 
+                check=True,
+                cwd=path
+            )
+            
+            # Parse the output lines
+            output_lines = []
+            if result.stdout:
+                output_lines.extend(result.stdout.strip().split('\n'))
+            if result.stderr:
+                output_lines.extend(result.stderr.strip().split('\n'))
+            
+            # Get the image ID from the built image
+            # Podman outputs the image ID at the end
+            image_id = None
+            for line in reversed(output_lines):
+                if len(line.strip()) == 64:  # SHA256 hash length
+                    image_id = line.strip()
+                    break
+            
+            # If we couldn't find the ID in output, get it via inspection
+            if not image_id:
+                inspect_cmd = ['podman', 'image', 'inspect', tag, '--format', '{{.Id}}']
+                inspect_result = subprocess.run(inspect_cmd, capture_output=True, text=True, check=True)
+                image_id = inspect_result.stdout.strip()
+            
+            return image_id, output_lines
+            
+        except subprocess.CalledProcessError as e:
+            # Re-raise with build output for debugging
+            error_output = []
+            if e.stdout:
+                error_output.extend(e.stdout.strip().split('\n'))
+            if e.stderr:
+                error_output.extend(e.stderr.strip().split('\n'))
+            
+            raise RuntimeError(f"Podman build failed: {' '.join(e.stderr.split()) if e.stderr else str(e)}") from e
 
     def rm_image(self, image_id: str):
         """
