@@ -5,14 +5,14 @@ repos:
     hooks:
       - id: black
         language_version: python3
-        args: [--line-length=119]
+        args: [--line-length=120]
 
   # Import sorting
   - repo: https://github.com/PyCQA/isort
     rev: 5.13.2
     hooks:
       - id: isort
-        args: [--profile=black, --line-length=119]
+        args: [--profile=black, --line-length=120]
 
   # Basic file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
