@@ -3,8 +3,6 @@ Unit tests for password generation and validation functions.
 Fast tests with no external dependencies.
 """
 
-import re
-
 import pytest
 
 from auth.password import get_char_sets, get_entropy, get_password_strength, random_password, shannon_entropy
@@ -26,12 +24,48 @@ class TestPasswordGeneration:
         assert len(set(passwords)) == 10, "Generated passwords should be unique"
 
     def test_random_password_character_sets(self):
-        """Test that passwords contain expected character sets"""
-        password = random_password(20)
+        """Test that passwords contain only letters and numbers with correct proportions"""
+        password = random_password(10)
 
-        # Should contain letters and numbers at minimum
-        assert re.search(r"[a-zA-Z]", password), "Password should contain letters"
-        assert re.search(r"[0-9]", password), "Password should contain numbers"
+        # Should only contain letters and numbers
+        allowed_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        for char in password:
+            assert char in allowed_chars, f"Password contains unexpected character: {char}"
+
+        # Should contain both letters and numbers
+        char_sets = get_char_sets(password)
+        assert "digits" in char_sets, "Password should contain digits"
+        assert "lowercase" in char_sets or "uppercase" in char_sets, "Password should contain letters"
+
+        # Test character proportions for a known length
+        digit_count = sum(1 for char in password if char.isdigit())
+        letter_count = sum(1 for char in password if char.isalpha())
+
+        # For 10 character password: 2 digits (20%) and 8 letters (80%)
+        assert digit_count == 2, f"Expected 2 digits, got {digit_count}"
+        assert letter_count == 8, f"Expected 8 letters, got {letter_count}"
+
+    def test_random_password_proportions(self):
+        """Test that password proportions are correct for various lengths"""
+        test_cases = [
+            (5, 1, 4),  # 5 chars: 1 digit (20%), 4 letters (80%)
+            (10, 2, 8),  # 10 chars: 2 digits (20%), 8 letters (80%)
+            (20, 4, 16),  # 20 chars: 4 digits (20%), 16 letters (80%)
+            (25, 5, 20),  # 25 chars: 5 digits (20%), 20 letters (80%)
+        ]
+
+        for length, expected_digits, expected_letters in test_cases:
+            password = random_password(length)
+            digit_count = sum(1 for char in password if char.isdigit())
+            letter_count = sum(1 for char in password if char.isalpha())
+
+            assert (
+                digit_count == expected_digits
+            ), f"Length {length}: expected {expected_digits} digits, got {digit_count}"
+            assert (
+                letter_count == expected_letters
+            ), f"Length {length}: expected {expected_letters} letters, got {letter_count}"
+            assert len(password) == length, f"Password length should be {length}, got {len(password)}"
 
     def test_get_char_sets(self):
         """Test character set detection"""

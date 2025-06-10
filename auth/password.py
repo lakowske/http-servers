@@ -19,7 +19,8 @@ from typing import Set
 
 def random_password(length: int = 20) -> str:
     """
-    Generates a random password string.
+    Generates a random password string with 20% numbers and 80% letters.
+    Characters are randomly shuffled so numbers and letters can appear anywhere.
 
     Args:
         length (int): The length of the password.
@@ -27,12 +28,33 @@ def random_password(length: int = 20) -> str:
     Returns:
         str: The random password.
     """
+    if length <= 0:
+        return ""
+
     lowercase = "abcdefghijklmnopqrstuvwxyz"
     uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     numbers = "0123456789"
-    special = "#$^*_-"
-    chars = lowercase + uppercase + numbers + special
-    return "".join(secrets.choice(chars) for _ in range(length))
+    letters = lowercase + uppercase
+
+    # Calculate number of digits (20%) and letters (80%)
+    num_digits = max(1, int(length * 0.2))  # At least 1 digit
+    num_letters = length - num_digits
+
+    # Generate the required characters
+    password_chars = []
+
+    # Add digits
+    for _ in range(num_digits):
+        password_chars.append(secrets.choice(numbers))
+
+    # Add letters
+    for _ in range(num_letters):
+        password_chars.append(secrets.choice(letters))
+
+    # Shuffle the characters randomly
+    secrets.SystemRandom().shuffle(password_chars)
+
+    return "".join(password_chars)
 
 
 def get_char_sets(password: str) -> Set[str]:
