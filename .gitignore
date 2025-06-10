@@ -15,3 +15,6 @@ servenv/
 # Secret files
 secrets/
 email-secrets.yaml
+
+# Podman build logs
+logs/

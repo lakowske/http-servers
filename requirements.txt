@@ -8,6 +8,8 @@ cffi==1.17.1
 charset-normalizer==3.4.0
 click==8.1.7
 codecov==2.1.13
+flake8==7.2.0
+pylint==3.3.7
 ConfigArgParse==1.7
 configobj==5.0.9
 coverage==7.6.8

@@ -333,14 +333,14 @@ gitweb_conf_template = TemplateTree(
     template_path="gitweb.conf",
 )
 
-dockerfile_http_template = TemplateTree(
+dockerfile_http_template = Copy(
     name="Dockerfile",
-    template_path="Dockerfile.httpd",
+    source_path="./Dockerfile.httpd",
 )
 
-dockerfile_mail_template = TemplateTree(
+dockerfile_mail_template = Copy(
     name="Dockerfile",
-    template_path="Dockerfile.mail",
+    source_path="./Dockerfile.mail",
 )
 
 postfix_conf_template = TemplateTree(
