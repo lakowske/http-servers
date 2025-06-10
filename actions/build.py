@@ -12,7 +12,6 @@ Can do the following actions:
 import os
 import json
 from datetime import datetime
-import uvicorn
 from http_server.health_check import healthcheck
 from actions.shell import ipython_shell
 from actions.dynamic_cli import DynamicCLI
@@ -375,19 +374,6 @@ def git_password():
     return password
 
 
-@cli.register()
-def run_ops():
-    """
-    Run the operations http server.
-    """
-    uvicorn.run(
-        "web.home:app",
-        host="127.0.0.1",
-        port=8000,
-        reload=True,
-        reload_dirs=["./templates", "./templates/web"],
-        reload_includes=["*.html"],
-    )
 
 
 @cli.register()

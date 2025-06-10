@@ -1,8 +1,6 @@
 """
-FastAPI application with configuration management
+Main entry point - functionality moved to CLI commands
 """
 
-from actions.build import run_ops
-
 if __name__ == "__main__":
-    run_ops()
+    print("Use 'now <command>' for available operations. Run 'source project.sh' first.")

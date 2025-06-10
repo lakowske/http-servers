@@ -35,11 +35,6 @@ now status                          # Comprehensive status of all services
 now clean                           # Clean up all containers, images, and volumes (destructive)
 ```
 
-### Development Server
-```bash
-now run_ops                         # Start FastAPI dev server on localhost:8000 with hot reload
-python main.py                      # Alternative way to start dev server
-```
 
 ### Container Management
 ```bash
@@ -86,7 +81,7 @@ The system uses dependency injection (`dependency-injector`) with these core ser
 ### Configuration System
 - **Centralized Config Tree**: All configuration managed through unified tree structure in `configuration/`
 - **Template-Driven**: Jinja2 templates generate all configuration files in `build/` directory
-- **Multi-Source**: Supports CLI args, YAML files (`secrets/config.yaml`), and JSON HTTP API
+- **Multi-Source**: Supports CLI args and YAML files (`secrets/config.yaml`)
 - **Late Binding**: Services configured only when requested
 
 ### Container Strategy
@@ -115,7 +110,6 @@ The system uses dependency injection (`dependency-injector`) with these core ser
 ### Testing Approach
 - **Unit Tests**: `tests/` directory using pytest
 - **Integration Tests**: `integration_tests/` directory for full service testing
-- **FastAPI Testing**: Uses TestClient for API endpoint testing
 - **Mock External Services**: Tests run independently without external dependencies
 
 ## Key File Locations
@@ -123,7 +117,6 @@ The system uses dependency injection (`dependency-injector`) with these core ser
 - `actions/build.py`: Main CLI command definitions
 - `configuration/`: Configuration tree and dependency injection setup
 - `services/`: All service implementations
-- `web/`: FastAPI application and API endpoints
 - `auth/`: Authentication and user management
 - `templates/`: Jinja2 templates for configs and Dockerfiles
 - `secrets/config.yaml`: Primary configuration file (not in repo)
@@ -157,8 +150,7 @@ Before committing code, ensure:
 3. **Build**: `now build` to render configs and build images
 4. **Deploy**: `now create_git_repo_volume && now run_httpd_container`
 5. **Certificates**: `now certificates && now reload` for HTTPS
-6. **Develop**: `now run_ops` for development server with hot reload
-7. **Lint**: Run linting before committing changes
+6. **Lint**: Run linting before committing changes
 
 ## Important Notes
 
